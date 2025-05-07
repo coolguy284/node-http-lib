@@ -1,4 +1,5 @@
 import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import {
   join,
   sep,
@@ -54,6 +55,7 @@ export async function serveFilesystem({
   clientRequest,
   fsPathPrefix,
   serve404, // optional
+  serve500, // optional
   pathFilter, // optional
 }) {
   if (clientRequest.path == null) {
@@ -124,27 +126,115 @@ export async function serveFilesystem({
     return;
   }
   
-  const resultFsPath = join(fsPathPrefix, processedPath);
-  
-  const fileStream = createReadStream(resultFsPath);
-  await awaitFileStreamReady(fileStream);
-  
-  const mimeType = getType(processedPath);
-  
-  let contentType;
-  if (mimeType == null) {
-    contentType = 'application/octet-stream';
-  } else if (mimeTypeIsText(mimeType)) {
-    contentType = `${mimeType}; charset=utf-8`;
-  } else {
-    contentType = mimeType;
+  if (pathFilter != null && !pathFilter(processedPath)) {
+    if (serve404 != null) {
+      serve404({
+        clientRequest,
+      });
+    } else {
+      const headers = {
+        ':status': 404,
+        'content-type': 'text/plain; charset=utf-8',
+      };
+      
+      if (clientRequest[':method'] == 'HEAD') {
+        clientRequest.respond(
+          '',
+          headers
+        );
+      } else {
+        clientRequest.respond(
+          `Error: file ${JSON.stringify(processedPath)} not found`,
+          headers
+        );
+      }
+    }
   }
   
-  clientRequest.respond(
-    fileStream,
-    {
+  const resultFsPath = join(fsPathPrefix, processedPath);
+  
+  try {
+    const stats = await stat(resultFsPath);
+    
+    const mimeType = getType(processedPath);
+    
+    let contentType;
+    if (mimeType == null) {
+      contentType = 'application/octet-stream';
+    } else if (mimeTypeIsText(mimeType)) {
+      contentType = `${mimeType}; charset=utf-8`;
+    } else {
+      contentType = mimeType;
+    }
+    
+    const headers = {
       ':status': 200,
       'content-type': contentType,
+    };
+    
+    if (clientRequest[':method'] == 'HEAD') {
+      clientRequest.respond(
+        '',
+        headers
+      );
+    } else {
+      const fileStream = createReadStream(resultFsPath);
+      await awaitFileStreamReady(fileStream);
+      
+      clientRequest.respond(
+        fileStream,
+        headers
+      );
     }
-  );
+  } catch (err) {
+    if (err.code == 'ENOENT') {
+      if (serve404 != null) {
+        serve404({
+          clientRequest,
+        });
+      } else {
+        const headers = {
+          ':status': 404,
+          'content-type': 'text/plain; charset=utf-8',
+        };
+        
+        if (clientRequest[':method'] == 'HEAD') {
+          clientRequest.respond(
+            '',
+            headers
+          );
+        } else {
+          clientRequest.respond(
+            `Error: file ${JSON.stringify(processedPath)} not found`,
+            headers
+          );
+        }
+      }
+    } else {
+      console.error(err);
+      
+      if (serve500 != null) {
+        serve500({
+          clientRequest,
+        });
+      } else {
+        const headers = {
+          ':status': 500,
+          'content-type': 'text/plain; charset=utf-8',
+        };
+        
+        if (clientRequest[':method'] == 'HEAD') {
+          clientRequest.respond(
+            '',
+            headers
+          );
+        } else {
+          clientRequest.respond(
+            `Error: an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
+            headers
+          );
+        }
+      }
+    }
+  }
 }
