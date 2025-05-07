@@ -1,0 +1,109 @@
+export class ClientRequest {
+  #respondFunc;
+  listenerID;
+  path; // string<URL pathname, no search params> | null
+  pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
+  pathRaw; // string<URL pathname>
+  /*
+    Map<string, string>
+    (
+      http2-like headers object, with ':path' removed;
+      ':scheme' is 'http' for insecure, and 'https' for secure requests
+    )
+  */
+  headers;
+  /*
+    {
+      mode: 'http1' | 'http1-upgrade' | 'http2',
+      if mode == 'http1':
+        req: IncomingMessage,
+        res: ServerResponse,
+      if mode == 'http1-upgrade':
+        req: IncomingMessage,
+        socket: Socket,
+        head: Object,
+      if mode == 'http2':
+        stream: Http2Stream,
+        headers: Object,
+        flags: number,
+        rawHeaders: Array,
+    }
+  */
+  internal;
+  
+  static createNew({
+    listenerID,
+    pathString,
+    headers,
+    internal,
+    respondFunc,
+  }) {
+    let pathUrl;
+    try {
+      pathUrl = new URL(`https://domain/${pathString}`);
+    } catch { /* empty */ }
+    
+    let path = null;
+    let pathSearchParams = null;
+    
+    if (pathUrl != null) {
+      path = pathUrl.pathname;
+      pathSearchParams = pathUrl.searchParams;
+    }
+    
+    return new ClientRequest({
+      listenerID,
+      path,
+      pathSearchParams,
+      pathRaw: pathString,
+      headers,
+      internal,
+      respondFunc,
+    });
+  }
+  
+  constructor({
+    listenerID,
+    path,
+    pathSearchParams,
+    pathRaw,
+    headers,
+    internal,
+    respondFunc,
+  }) {
+    this.listenerID = listenerID;
+    this.path = path;
+    this.pathSearchParams = pathSearchParams;
+    this.pathRaw = pathRaw;
+    this.headers = headers;
+    this.internal = internal;
+    this.#respondFunc = respondFunc;
+  }
+  
+  pathMatch(pathStart) {
+    if (pathStart.endsWith('/')) {
+      return this.path.startsWith(pathStart);
+    } else {
+      return this.path == pathStart;
+    }
+  }
+  
+  subRequest(pathStart) {
+    return new ClientRequest({
+      listenerID: this.listenerID,
+      path: this.path.slice(pathStart.listen - 1),
+      pathSearchParams: this.pathSearchParams,
+      pathRaw: this.pathRaw,
+      headers: this.headers,
+      internal: this.internal,
+    });
+  }
+  
+  /*
+    data: string | Buffer | Stream,
+    headers: Object | null,
+  */
+  respond(data, headers) {
+    this.#respondFunc(data, headers);
+  }
+}
