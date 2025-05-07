@@ -1,3 +1,5 @@
+servefs range requests including multipart
+convert serveFs to not reveal win/linux based on '\' in url
 add local/remote address/port/family to clientrequest
 add a way to read data from request body
 websocket upgrade support
