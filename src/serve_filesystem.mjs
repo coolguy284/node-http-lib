@@ -31,6 +31,25 @@ async function awaitFileStreamReady(fileStream) {
   });
 }
 
+// https://stackoverflow.com/a/66164189
+const TEXTUAL_APPLICATION_TYPES = new Set([
+  'json', 'ld+json', 'x-httpd-php', 'x-sh', 'x-csh', 'xml',
+]);
+function mimeTypeIsText(mimeType) {
+  if (mimeType == null) {
+    return false;
+  } else if (mimeType.startsWith('text/')) {
+    return true;
+  } else if (mimeType.endsWith('-xml')) {
+    return true;
+  } else if (mimeType.startsWith('application/')) {
+    let applicationSubType = mimeType.slice('application/'.length);
+    return TEXTUAL_APPLICATION_TYPES.has(applicationSubType);
+  } else {
+    return false;
+  }
+}
+
 export async function serveFilesystem({
   clientRequest,
   fsPathPrefix,
@@ -110,11 +129,22 @@ export async function serveFilesystem({
   const fileStream = createReadStream(resultFsPath);
   await awaitFileStreamReady(fileStream);
   
+  const mimeType = getType(processedPath);
+  
+  let contentType;
+  if (mimeType == null) {
+    contentType = 'application/octet-stream';
+  } else if (mimeTypeIsText(mimeType)) {
+    contentType = `${mimeType}; charset=utf-8`;
+  } else {
+    contentType = mimeType;
+  }
+  
   clientRequest.respond(
     fileStream,
     {
       ':status': 200,
-      'content-type': getType(processedPath),
+      'content-type': contentType,
     }
   );
 }
