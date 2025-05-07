@@ -9,13 +9,30 @@ class ClientRequest {
   headers; // Map<string, string> (http2-like headers object, with ':path' removed)
   /*
     {
-      mode: 'http' | 'https' | 'http2' | 'http3',
-      if mode == 'http' | 'https':
+      mode: 'http1' | 'http1-upgrade' | 'http2',
+      if mode == 'http1':
         req: IncomingMessage,
         res: ServerResponse,
+      if mode == 'http1-upgrade':
+        req: IncomingMessage,
+        socket: Socket,
+        head: Object,
+      if mode == 'http2':
+        stream: Http2Stream,
+        headers: Object,
+        flags: number,
+        rawHeaders: Array,
     }
   */
   internal;
+  
+  static createNew({
+    pathString,
+    headers,
+    internal,
+  }) {
+    
+  }
   
   constructor({
     pathString,
@@ -39,11 +56,19 @@ class ClientRequest {
   }
   
   pathMatch(pathStart) {
-    // TODO
+    if (pathStart.endsWith('/')) {
+      return this.path.startsWith(pathStart);
+    } else {
+      return this.path == pathStart;
+    }
   }
   
   subRequest(pathStart) {
-    // TODO
+    return new ClientRequest({
+      pathString: this.pathRaw.slice(pathStart.length - 1),
+      headers: this.headers,
+      internal: this.internal,
+    });
   }
 }
 
@@ -64,18 +89,52 @@ export class Server {
       pathString: req.url,
       headers,
       internal: {
+        mode: 'http1',
         req,
         res,
       },
     }));
   }
   
-  async #handleHTTP1Upgrade(req, head, socket) {
-    // TODO
+  async #handleHTTP1Upgrade(req, socket, head) {
+    let headers = Object.fromEntries(Object.entries(req.headers));
+    
+    headers[':scheme'] = 'http';
+    headers[':method'] = 'CONNECT';
+    headers[':authority'] = req.headers.host;
+    delete headers.host;
+    headers[':protocol'] = req.headers.upgrade;
+    delete headers.upgrade;
+    delete headers.connection;
+    
+    await this.#requestListener(new ClientRequest({
+      pathString: req.url,
+      headers,
+      internal: {
+        mode: 'http1-upgrade',
+        req,
+        socket,
+        head,
+      },
+    }));
   }
   
-  async #handleHTTP2Request(req) {
-    // TODO
+  async #handleHTTP2Request(stream, headers, flags, rawHeaders) {
+    let processedHeaders = Object.fromEntries(Object.entries(req.headers));
+    
+    delete processedHeaders[':path'];
+    
+    await this.#requestListener(new ClientRequest({
+      pathString: req.headers[':path'],
+      headers: processedHeaders,
+      internal: {
+        mode: 'http2',
+        stream,
+        headers,
+        flags,
+        rawHeaders,
+      },
+    }));
   }
   
   /*
