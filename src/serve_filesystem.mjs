@@ -127,34 +127,27 @@ export async function serveFilesystem({
   }
   
   if (pathFilter != null && !pathFilter(processedPath)) {
-    if (serve404 != null) {
-      serve404({
-        clientRequest,
-      });
-    } else {
-      const headers = {
-        ':status': 404,
-        'content-type': 'text/plain; charset=utf-8',
-      };
-      
-      if (clientRequest[':method'] == 'HEAD') {
-        clientRequest.respond(
-          '',
-          headers
-        );
-      } else {
-        clientRequest.respond(
-          `Error: file ${JSON.stringify(processedPath)} not found`,
-          headers
-        );
-      }
-    }
+    serveFilesystem_send404({
+      clientRequest,
+      processedPath,
+      serve404,
+    });
+    return;
   }
   
   const resultFsPath = join(fsPathPrefix, processedPath);
   
   try {
     const stats = await stat(resultFsPath);
+    
+    if (!stats.isFile()) {
+      serveFilesystem_send404({
+        clientRequest,
+        processedPath,
+        serve404,
+      });
+      return;
+    }
     
     const mimeType = getType(processedPath);
     
@@ -170,6 +163,7 @@ export async function serveFilesystem({
     const headers = {
       ':status': 200,
       'content-type': contentType,
+      'content-length': stats.size,
     };
     
     if (clientRequest[':method'] == 'HEAD') {
@@ -188,53 +182,69 @@ export async function serveFilesystem({
     }
   } catch (err) {
     if (err.code == 'ENOENT') {
-      if (serve404 != null) {
-        serve404({
-          clientRequest,
-        });
-      } else {
-        const headers = {
-          ':status': 404,
-          'content-type': 'text/plain; charset=utf-8',
-        };
-        
-        if (clientRequest[':method'] == 'HEAD') {
-          clientRequest.respond(
-            '',
-            headers
-          );
-        } else {
-          clientRequest.respond(
-            `Error: file ${JSON.stringify(processedPath)} not found`,
-            headers
-          );
-        }
-      }
+      serveFilesystem_send404({
+        clientRequest,
+        processedPath,
+        serve404,
+      });
     } else {
       console.error(err);
       
-      if (serve500 != null) {
-        serve500({
-          clientRequest,
-        });
-      } else {
-        const headers = {
-          ':status': 500,
-          'content-type': 'text/plain; charset=utf-8',
-        };
-        
-        if (clientRequest[':method'] == 'HEAD') {
-          clientRequest.respond(
-            '',
-            headers
-          );
-        } else {
-          clientRequest.respond(
-            `Error: an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
-            headers
-          );
-        }
-      }
+      serveFilesystem_send500({
+        clientRequest,
+        processedPath,
+        serve500,
+      });
+    }
+  }
+}
+
+function serveFilesystem_send404({ clientRequest, processedPath, serve404 }) {
+  if (serve404 != null) {
+    serve404({
+      clientRequest,
+    });
+  } else {
+    const headers = {
+      ':status': 404,
+      'content-type': 'text/plain; charset=utf-8',
+    };
+    
+    if (clientRequest[':method'] == 'HEAD') {
+      clientRequest.respond(
+        '',
+        headers
+      );
+    } else {
+      clientRequest.respond(
+        `Error: file ${JSON.stringify(processedPath)} not found`,
+        headers
+      );
+    }
+  }
+}
+
+function serveFilesystem_send500({ clientRequest, processedPath, serve500 }) {
+  if (serve500 != null) {
+    serve500({
+      clientRequest,
+    });
+  } else {
+    const headers = {
+      ':status': 500,
+      'content-type': 'text/plain; charset=utf-8',
+    };
+    
+    if (clientRequest[':method'] == 'HEAD') {
+      clientRequest.respond(
+        '',
+        headers
+      );
+    } else {
+      clientRequest.respond(
+        `Error: an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
+        headers
+      );
     }
   }
 }
