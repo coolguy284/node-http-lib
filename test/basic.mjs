@@ -58,3 +58,5 @@ const server = new Server({
 });
 
 await server.listen();
+
+console.log('Server active');
