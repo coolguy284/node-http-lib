@@ -3,10 +3,18 @@ import { createServer as createHTTPSServer } from 'node:https';
 import { createSecureServer as createHTTP2Server } from 'node:http2';
 
 class ClientRequest {
-  path = null; // string<URL pathname, no search params> | null
-  pathSearchParams = null; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
+  listenerID;
+  path; // string<URL pathname, no search params> | null
+  pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
   pathRaw; // string<URL pathname>
-  headers; // Map<string, string> (http2-like headers object, with ':path' removed)
+  /*
+    Map<string, string>
+    (
+      http2-like headers object, with ':path' removed;
+      ':scheme' is 'http' for insecure, and 'https' for secure requests
+    )
+  */
+  headers;
   /*
     {
       mode: 'http1' | 'http1-upgrade' | 'http2',
@@ -27,30 +35,46 @@ class ClientRequest {
   internal;
   
   static createNew({
+    listenerID,
     pathString,
     headers,
     internal,
   }) {
-    
-  }
-  
-  constructor({
-    pathString,
-    headers,
-    internal,
-  }) {
-    this.pathRaw = pathString;
-    
     let pathUrl;
     try {
       pathUrl = new URL(`https://domain/${pathString}`);
     } catch { /* empty */ }
     
+    let path = null;
+    let pathSearchParams = null;
+    
     if (pathUrl != null) {
-      this.path = pathUrl.pathname;
-      this.pathSearchParams = pathUrl.searchParams;
+      path = pathUrl.pathname;
+      pathSearchParams = pathUrl.searchParams;
     }
     
+    return new ClientRequest({
+      listenerID,
+      path,
+      pathSearchParams,
+      pathRaw: pathString,
+      headers,
+      internal,
+    });
+  }
+  
+  constructor({
+    listenerID,
+    path,
+    pathSearchParams,
+    pathRaw,
+    headers,
+    internal,
+  }) {
+    this.listenerID = listenerID;
+    this.path = path;
+    this.pathSearchParams = pathSearchParams;
+    this.pathRaw = pathRaw;
     this.headers = headers;
     this.internal = internal;
   }
@@ -65,7 +89,10 @@ class ClientRequest {
   
   subRequest(pathStart) {
     return new ClientRequest({
-      pathString: this.pathRaw.slice(pathStart.length - 1),
+      listenerID: this.listenerID,
+      path: this.path.slice(pathStart.listen - 1),
+      pathSearchParams: this.pathSearchParams,
+      pathRaw: this.pathRaw,
       headers: this.headers,
       internal: this.internal,
     });
@@ -77,15 +104,17 @@ export class Server {
   #requestListener;
   #listening = false;
   
-  async #handleHTTP1Request(req, res) {
+  async #handleHTTP1Request({ listenerID, secure, req, res }) {
     let headers = Object.fromEntries(Object.entries(req.headers));
     
-    headers[':scheme'] = 'http';
+    headers[':scheme'] = secure ? 'https' : 'http';
     headers[':method'] = req.method;
     headers[':authority'] = req.headers.host;
     delete headers.host;
     
-    await this.#requestListener(new ClientRequest({
+    await this.#requestListener(ClientRequest.createNew({
+      listenerID,
+      secure,
       pathString: req.url,
       headers,
       internal: {
@@ -96,10 +125,10 @@ export class Server {
     }));
   }
   
-  async #handleHTTP1Upgrade(req, socket, head) {
+  async #handleHTTP1Upgrade({ listenerID, secure, req, socket, head }) {
     let headers = Object.fromEntries(Object.entries(req.headers));
     
-    headers[':scheme'] = 'http';
+    headers[':scheme'] = secure ? 'https' : 'http';
     headers[':method'] = 'CONNECT';
     headers[':authority'] = req.headers.host;
     delete headers.host;
@@ -107,7 +136,9 @@ export class Server {
     delete headers.upgrade;
     delete headers.connection;
     
-    await this.#requestListener(new ClientRequest({
+    await this.#requestListener(ClientRequest.createNew({
+      listenerID,
+      secure,
       pathString: req.url,
       headers,
       internal: {
@@ -119,12 +150,14 @@ export class Server {
     }));
   }
   
-  async #handleHTTP2Request(stream, headers, flags, rawHeaders) {
+  async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders }) {
     let processedHeaders = Object.fromEntries(Object.entries(req.headers));
     
     delete processedHeaders[':path'];
     
-    await this.#requestListener(new ClientRequest({
+    await this.#requestListener(ClientRequest.createNew({
+      listenerID,
+      secure,
       pathString: req.headers[':path'],
       headers: processedHeaders,
       internal: {
@@ -141,6 +174,7 @@ export class Server {
     instances:
     [
       {
+        listenerID: string | null, (for use in ClientRequest)
         mode: 'http' | 'https' | 'http2' | 'http3',
         ip: string<ip address>,
         port: integer<port, 0 - 65535>,
@@ -155,20 +189,14 @@ export class Server {
     instances,
     requestListener,
   }) {
-    this.#instances = instances.map(
-      ({ mode, ip, port, cert, key, options }) => ({
-        mode,
-        ip,
-        port,
-        cert,
-        key,
-        options,
-        server: null,
-      })
-    );
+    this.#instances = instances.map(instance => {
+      let newInstance = Object.fromEntries(Object.entries(instance));
+      newInstance.server = null;
+      return newInstance;
+    });
     
     for (let instance of this.#instances) {
-      const { mode, cert, key, options } = instance;
+      const { listenerID, mode, cert, key, options } = instance;
       
       switch (mode) {
         case 'http':
@@ -179,11 +207,49 @@ export class Server {
           instance.server = createHTTPServer(options);
           
           instance.server.on('request', async (req, res) => {
-            await this.#handleHTTP1Request(req, res);
+            await this.#handleHTTP1Request({
+              listenerID,
+              secure: false,
+              req,
+              res,
+            });
           });
           
-          instance.server.on('upgrade', async (req, res) => {
-            await this.#handleHTTP1Upgrade(req, res);
+          instance.server.on('upgrade', async (req, socket, head) => {
+            await this.#handleHTTP1Upgrade({
+              listenerID,
+              secure: true,
+              req,
+              socket,
+              head,
+            });
+          });
+          break;
+        
+        case 'https':
+          if (typeof options != 'object' && options != undefined) {
+            throw new Error(`options not object or undefined: ${options}`);
+          }
+          
+          instance.server = createHTTPSServer(options);
+          
+          instance.server.on('request', async (req, res) => {
+            await this.#handleHTTP1Request({
+              listenerID,
+              secure: true,
+              req,
+              res,
+            });
+          });
+          
+          instance.server.on('upgrade', async (req, socket, head) => {
+            await this.#handleHTTP1Upgrade({
+              listenerID,
+              secure: true,
+              req,
+              socket,
+              head,
+            });
           });
           break;
       }
