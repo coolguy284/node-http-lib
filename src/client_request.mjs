@@ -1,9 +1,11 @@
 export class ClientRequest {
+  // http1 upgrades are treated as CONNECT requests using the extended connect
+  // protocol, regardless of the true request method
   #respondFunc;
   listenerID;
-  path; // string<URL pathname, no search params> | null
+  path; // string<URL pathname (URL-decoded), no search params, with initial '/' removed> | null
   pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
-  pathRaw; // string<URL pathname>
+  pathRaw; // string<URL pathname, no processing>
   /*
     Map<string, string>
     (
@@ -47,7 +49,7 @@ export class ClientRequest {
     let pathSearchParams = null;
     
     if (pathUrl != null) {
-      path = pathUrl.pathname;
+      path = decodeURIComponent(pathUrl.pathname).slice(1);
       pathSearchParams = pathUrl.searchParams;
     }
     
@@ -81,7 +83,9 @@ export class ClientRequest {
   }
   
   pathMatch(pathStart) {
-    if (pathStart.endsWith('/')) {
+    if (pathStart == '') {
+      return true;
+    } else if (pathStart.endsWith('/')) {
       return this.path.startsWith(pathStart);
     } else {
       return this.path == pathStart;

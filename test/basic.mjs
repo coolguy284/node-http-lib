@@ -41,15 +41,15 @@ const server = new Server({
     },
   ],
   requestListener: async (clientRequest) => {
-    if (clientRequest.pathMatch('/file/')) {
+    if (clientRequest.pathMatch('file/')) {
       await serveFilesystem({
-        clientRequest: clientRequest.subRequest('/file/'),
+        clientRequest: clientRequest.subRequest('file/'),
         fsPath: '.',
       });
-    } else if (clientRequest.pathMatch('/ws')) {
+    } else if (clientRequest.pathMatch('ws')) {
       // TODO
       await serveWS({});
-    } else if (clientRequest.pathMatch('/file.txt')) {
+    } else if (clientRequest.pathMatch('file.txt')) {
       clientRequest.respond(`plain text ${new Date().toISOString()}`);
     } else {
       clientRequest.respond('not found', { ':status': 404 });
