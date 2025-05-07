@@ -1,8 +1,13 @@
-import { createServer as createHTTPServer } from 'node:http';
+import {
+  createServer as createHTTPServer,
+  STATUS_CODES,
+} from 'node:http';
 import { createServer as createHTTPSServer } from 'node:https';
 import { createSecureServer as createHTTP2Server } from 'node:http2';
+import { Readable } from 'node:stream';
 
 class ClientRequest {
+  #respondFunc;
   listenerID;
   path; // string<URL pathname, no search params> | null
   pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
@@ -39,6 +44,7 @@ class ClientRequest {
     pathString,
     headers,
     internal,
+    respondFunc,
   }) {
     let pathUrl;
     try {
@@ -60,6 +66,7 @@ class ClientRequest {
       pathRaw: pathString,
       headers,
       internal,
+      respondFunc,
     });
   }
   
@@ -70,6 +77,7 @@ class ClientRequest {
     pathRaw,
     headers,
     internal,
+    respondFunc,
   }) {
     this.listenerID = listenerID;
     this.path = path;
@@ -77,6 +85,7 @@ class ClientRequest {
     this.pathRaw = pathRaw;
     this.headers = headers;
     this.internal = internal;
+    this.#respondFunc = respondFunc;
   }
   
   pathMatch(pathStart) {
@@ -96,6 +105,14 @@ class ClientRequest {
       headers: this.headers,
       internal: this.internal,
     });
+  }
+  
+  /*
+    data: string | Buffer | Stream,
+    headers: Object | null,
+  */
+  respond(data, headers) {
+    this.#respondFunc(data, headers);
   }
 }
 
@@ -122,6 +139,30 @@ export class Server {
         req,
         res,
       },
+      respondFunc: (data, headers) => {
+        let status;
+        
+        if (headers == null) {
+          status = 200;
+          headers = {
+            'content-type': 'text/plain; charset=utf-8',
+          };
+        } else {
+          status = headers[':status'];
+          headers = Object.fromEntries(
+            Object.entries(headers)
+              .map(([ key, _ ]) => key != ':status')
+          );
+        }
+        
+        req.writeHead(status, headers);
+        
+        if (data instanceof Readable) {
+          data.pipe(res);
+        } else {
+          req.end(data);
+        }
+      },
     }));
   }
   
@@ -147,6 +188,35 @@ export class Server {
         socket,
         head,
       },
+      respondFunc: (data, headers) => {
+        let status;
+        
+        if (headers == null) {
+          status = 200;
+          headers = {
+            'content-type': 'text/plain; charset=utf-8',
+          };
+        } else {
+          status = headers[':status'];
+          headers = Object.fromEntries(
+            Object.entries(headers)
+              .map(([ key, _ ]) => key != ':status')
+          );
+        }
+        
+        socket.write(
+          `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
+          Object.fromEntries(headers)
+            .map(([ key, value ]) => `${key}: ${value}`)
+            .join('\r\n') + '\r\n\r\n'
+        );
+        
+        if (data instanceof Readable) {
+          data.pipe(socket);
+        } else {
+          socket.end(data);
+        }
+      },
     }));
   }
   
@@ -167,6 +237,21 @@ export class Server {
         flags,
         rawHeaders,
       },
+      respondFunc: (data, headers) => {
+        if (headers == null) {
+          headers = {
+            'content-type': 'text/plain; charset=utf-8',
+          };
+        }
+        
+        stream.respond(headers);
+        
+        if (data instanceof Readable) {
+          data.pipe(res);
+        } else {
+          stream.end(data);
+        }
+      },
     }));
   }
   
@@ -178,9 +263,7 @@ export class Server {
         mode: 'http' | 'https' | 'http2' | 'http3',
         ip: string<ip address>,
         port: integer<port, 0 - 65535>,
-        if mode == 'https' | 'http2' | 'http3':
-          cert: Buffer<TLS certificate>,
-          key: Buffer<TLS key>,
+        options: Object, (options passed to server constructor)
       },
       ...
     ]
@@ -196,17 +279,17 @@ export class Server {
     });
     
     for (let instance of this.#instances) {
-      const { listenerID, mode, cert, key, options } = instance;
+      const { listenerID, mode, options } = instance;
       
       switch (mode) {
-        case 'http':
+        case 'http': {
           if (typeof options != 'object' && options != undefined) {
             throw new Error(`options not object or undefined: ${options}`);
           }
           
-          instance.server = createHTTPServer(options);
+          const server = instance.server = createHTTPServer(options);
           
-          instance.server.on('request', async (req, res) => {
+          server.on('request', async (req, res) => {
             await this.#handleHTTP1Request({
               listenerID,
               secure: false,
@@ -215,7 +298,7 @@ export class Server {
             });
           });
           
-          instance.server.on('upgrade', async (req, socket, head) => {
+          server.on('upgrade', async (req, socket, head) => {
             await this.#handleHTTP1Upgrade({
               listenerID,
               secure: true,
@@ -225,15 +308,16 @@ export class Server {
             });
           });
           break;
+        }
         
-        case 'https':
+        case 'https': {
           if (typeof options != 'object' && options != undefined) {
             throw new Error(`options not object or undefined: ${options}`);
           }
           
-          instance.server = createHTTPSServer(options);
+          const server = instance.server = createHTTPSServer(options);
           
-          instance.server.on('request', async (req, res) => {
+          server.on('request', async (req, res) => {
             await this.#handleHTTP1Request({
               listenerID,
               secure: true,
@@ -242,7 +326,7 @@ export class Server {
             });
           });
           
-          instance.server.on('upgrade', async (req, socket, head) => {
+          server.on('upgrade', async (req, socket, head) => {
             await this.#handleHTTP1Upgrade({
               listenerID,
               secure: true,
@@ -252,6 +336,27 @@ export class Server {
             });
           });
           break;
+        }
+        
+        case 'http2': {
+          if (typeof options != 'object' && options != undefined) {
+            throw new Error(`options not object or undefined: ${options}`);
+          }
+          
+          const server = instance.server = createHTTP2Server(options);
+          
+          server.on('session', async (stream, headers, flags, rawHeaders) => {
+            await this.#handleHTTP2Request({
+              listenerID,
+              secure: true,
+              stream,
+              headers,
+              flags,
+              rawHeaders,
+            });
+          });
+          break;
+        }
       }
     }
     

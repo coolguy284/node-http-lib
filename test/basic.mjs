@@ -16,22 +16,28 @@ const server = new Server({
       mode: 'https',
       ip: 'localhost',
       port: 8443,
-      cert: await readFile('cert.pem'),
-      key: await readFile('key.pem'),
+      options: {
+        cert: await readFile('cert.pem'),
+        key: await readFile('key.pem'),
+      },
     },
     {
       mode: 'http2',
       ip: 'localhost',
       port: 8443,
-      cert: await readFile('cert.pem'),
-      key: await readFile('key.pem'),
+      options: {
+        cert: await readFile('cert.pem'),
+        key: await readFile('key.pem'),
+      },
     },
     {
       mode: 'http3',
       ip: 'localhost',
       port: 8443,
-      cert: await readFile('cert.pem'),
-      key: await readFile('key.pem'),
+      options: {
+        cert: await readFile('cert.pem'),
+        key: await readFile('key.pem'),
+      },
     },
   ],
   requestListener: async (clientRequest) => {
@@ -41,11 +47,12 @@ const server = new Server({
         fsPath: '.',
       });
     } else if (clientRequest.pathMatch('/ws')) {
+      // TODO
       await serveWS({});
     } else if (clientRequest.pathMatch('/file.txt')) {
-      clientRequest.respondText(`plain text ${new Date().toISOString()}`);
+      clientRequest.respond(`plain text ${new Date().toISOString()}`);
     } else {
-      clientRequest.respondText('not found', { ':status': 404 });
+      clientRequest.respond('not found', { ':status': 404 });
     }
   },
 });
