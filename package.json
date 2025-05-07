@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "A library to present a simple unified interface for running nodejs HTTP/HTTPS 1, 2, and 3 servers, with support for websockets.",
   "author": "coolguy284 <coolguy284v64@gmail.com> (https://github.com/coolguy284)",
-  "license": "(ISC + Unlicense)",
+  "license": "(MIT + Unlicense)",
   "main": "src/main.mjs",
   "exports": {
     ".": "./src/main.mjs"
