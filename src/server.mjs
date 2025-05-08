@@ -5,6 +5,7 @@ import {
 import { createServer as createHTTPSServer } from 'node:https';
 import { createSecureServer as createHTTP2Server } from 'node:http2';
 import { Readable } from 'node:stream';
+import { createServer as createTLSServer } from 'node:tls';
 
 import { ClientRequest } from './client_request.mjs';
 
@@ -269,12 +270,20 @@ export class Server {
   }) {
     this.#instances = instances.map(instance => {
       let newInstance = Object.fromEntries(Object.entries(instance));
+      
       newInstance.server = null;
+      newInstance.hasTlsComponent = false;
+      newInstance.firstInTlsComponent = null;
+      newInstance.tlsServer = null; // only used for https/http2 sharing
+      newInstance.otherServer = null; // only used for https/http2 sharing
+      
       return newInstance;
     });
     
+    let tlsServers = new Map();
+    
     for (let instance of this.#instances) {
-      const { listenerID, mode, options } = instance;
+      const { listenerID, mode, ip, port, options } = instance;
       
       switch (mode) {
         case 'http': {
@@ -350,6 +359,41 @@ export class Server {
               head,
             });
           });
+          
+          const ipPortKey = `[${ip}]:${port}`;
+          
+          if (tlsServers.has(ipPortKey)) {
+            let { firstInstance } = tlsServers.get(ipPortKey);
+            
+            firstInstance.hasTlsComponent = true;
+            firstInstance.firstInTlsComponent = true;
+            instance.hasTlsComponent = true;
+            instance.firstInTlsComponent = false;
+            const tlsServer = firstInstance.tlsServer = createTLSServer({
+              ...firstInstance.options,
+              ALPNProtocols: ['h2', 'http/1.1'],
+            });
+            
+            tlsServer.on('secureConnection', socket => {
+              if (socket.destroyed) {
+                return;
+              }
+              
+              socket.setNoDelay(true);
+              
+              if (socket.alpnProtocol == false || socket.alpnProtocol == 'http/1.1') {
+                server.emit('secureConnection', socket);
+              } else {
+                firstInstance.server.emit('secureConnection', socket);
+              }
+            });
+            
+            firstInstance.otherServer = server;
+          } else {
+            tlsServers.set(ipPortKey, {
+              firstInstance: instance,
+            });
+          }
           break;
         }
         
@@ -370,6 +414,39 @@ export class Server {
               rawHeaders,
             });
           });
+          
+          const ipPortKey = `[${ip}]:${port}`;if (tlsServers.has(ipPortKey)) {
+            let { firstInstance } = tlsServers.get(ipPortKey);
+            
+            firstInstance.hasTlsComponent = true;
+            firstInstance.firstInTlsComponent = true;
+            instance.hasTlsComponent = true;
+            instance.firstInTlsComponent = false;
+            const tlsServer = firstInstance.tlsServer = createTLSServer({
+              ...firstInstance.options,
+              ALPNProtocols: ['h2', 'http/1.1'],
+            });
+            
+            tlsServer.on('secureConnection', socket => {
+              if (socket.destroyed) {
+                return;
+              }
+              
+              socket.setNoDelay(true);
+              
+              if (socket.alpnProtocol == false || socket.alpnProtocol == 'http/1.1') {
+                firstInstance.server.emit('secureConnection', socket);
+              } else {
+                server.emit('secureConnection', socket);
+              }
+            });
+            
+            firstInstance.otherServer = server;
+          } else {
+            tlsServers.set(ipPortKey, {
+              firstInstance: instance,
+            });
+          }
           break;
         }
       }
@@ -380,27 +457,48 @@ export class Server {
   
   async listen() {
     await Promise.all(
-      this.#instances.map(async ({ mode, ip, port, server }) => {
+      this.#instances.map(async ({ mode, ip, port, hasTlsComponent, firstInTlsComponent, server, tlsServer }) => {
         switch (mode) {
           case 'http':
           case 'https':
           case 'http2':
-            await new Promise((r, j) => {
-              const successListener = () => {
-                r();
-                server.off('error', errorListener);
-              };
-              
-              const errorListener = err => {
-                j(err);
-              };
-              
-              server.on('error', errorListener);
-              
-              server.listen(port, ip, () => {
-                successListener();
+            if (hasTlsComponent) {
+              if (firstInTlsComponent) {
+                await new Promise((r, j) => {
+                  const successListener = () => {
+                    r();
+                    tlsServer.off('error', errorListener);
+                  };
+                  
+                  const errorListener = err => {
+                    j(err);
+                  };
+                  
+                  tlsServer.on('error', errorListener);
+                  
+                  tlsServer.listen(port, ip, () => {
+                    successListener();
+                  });
+                });
+              }
+            } else {
+              await new Promise((r, j) => {
+                const successListener = () => {
+                  r();
+                  server.off('error', errorListener);
+                };
+                
+                const errorListener = err => {
+                  j(err);
+                };
+                
+                server.on('error', errorListener);
+                
+                server.listen(port, ip, () => {
+                  successListener();
+                });
               });
-            });
+            }
             break;
           
           default:
@@ -417,8 +515,18 @@ export class Server {
       throw new Error('cannot close servers, servers not listening yet');
     }
     
-    for (const { server } of this.#instances) {
+    for (const { hasTlsComponent, firstInTlsComponent, server, tlsServer, tlsServerConnections } of this.#instances) {
       server.closeAllConnections();
+      
+      if (hasTlsComponent) {
+        if (firstInTlsComponent) {
+          tlsServer.close();
+          
+          for (const socket of tlsServerConnections) {
+            socket.destroy();
+          }
+        }
+      }
     }
     
     this.#listening = false;

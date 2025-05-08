@@ -13,7 +13,7 @@ const server = new Server({
       ip: 'localhost',
       port: 8080,
     },
-    /*{
+    {
       listenerID: 'https',
       mode: 'https',
       ip: 'localhost',
@@ -22,15 +22,16 @@ const server = new Server({
         cert: await readFile('cert.pem'),
         key: await readFile('key.pem'),
       },
-    },*/
+    },
     {
       listenerID: 'http2',
       mode: 'http2',
       ip: 'localhost',
       port: 8443,
       options: {
-        cert: await readFile('cert.pem'),
-        key: await readFile('key.pem'),
+        // can omit, as first server with this ip/port combination will set the TLS options
+        //cert: await readFile('cert.pem'),
+        //key: await readFile('key.pem'),
         enableConnectProtocol: true,
       },
     },

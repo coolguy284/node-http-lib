@@ -5,3 +5,4 @@ last modified, if-range support
 add a way to read data from request body
 websocket upgrade support
 http3 support
+http client support, proxy support
