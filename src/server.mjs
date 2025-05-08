@@ -271,10 +271,11 @@ export class Server {
     this.#instances = instances.map(instance => {
       let newInstance = Object.fromEntries(Object.entries(instance));
       
-      newInstance.server = null;
       newInstance.hasTlsComponent = false;
-      newInstance.firstInTlsComponent = null;
+      newInstance.server = null;
+      newInstance.firstInTlsComponent = null; // only used for https/http2 sharing
       newInstance.tlsServer = null; // only used for https/http2 sharing
+      newInstance.tlsServerConnections = null; // only used for https/http2 sharing
       newInstance.otherServer = null; // only used for https/http2 sharing
       
       return newInstance;
@@ -369,22 +370,35 @@ export class Server {
             firstInstance.firstInTlsComponent = true;
             instance.hasTlsComponent = true;
             instance.firstInTlsComponent = false;
+            
             const tlsServer = firstInstance.tlsServer = createTLSServer({
               ...firstInstance.options,
               ALPNProtocols: ['h2', 'http/1.1'],
             });
             
-            tlsServer.on('secureConnection', socket => {
-              if (socket.destroyed) {
+            const tlsServerConnections = firstInstance.tlsServerConnections = new Set();
+            
+            tlsServer.on('connection', socket => {
+              if (!socket.destroyed) {
+                tlsServerConnections.add(socket);
+                
+                socket.on('close', () => {
+                  tlsServerConnections.delete(socket);
+                })
+              }
+            });
+            
+            tlsServer.on('secureConnection', tlsSocket => {
+              if (tlsSocket.destroyed) {
                 return;
               }
               
-              socket.setNoDelay(true);
+              tlsSocket.setNoDelay(true);
               
-              if (socket.alpnProtocol == false || socket.alpnProtocol == 'http/1.1') {
-                server.emit('secureConnection', socket);
+              if (tlsSocket.alpnProtocol == false || tlsSocket.alpnProtocol == 'http/1.1') {
+                server.emit('secureConnection', tlsSocket);
               } else {
-                firstInstance.server.emit('secureConnection', socket);
+                firstInstance.server.emit('secureConnection', tlsSocket);
               }
             });
             
