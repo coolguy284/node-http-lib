@@ -95,7 +95,7 @@ export class ClientRequest {
   subRequest(pathStart) {
     return new ClientRequest({
       listenerID: this.listenerID,
-      path: this.path.slice(pathStart.listen - 1),
+      path: this.path.slice(pathStart.length - 1),
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
