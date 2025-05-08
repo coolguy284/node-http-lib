@@ -13,7 +13,7 @@ const server = new Server({
       ip: 'localhost',
       port: 8080,
     },
-    {
+    /*{
       listenerID: 'https',
       mode: 'https',
       ip: 'localhost',
@@ -22,8 +22,8 @@ const server = new Server({
         cert: await readFile('cert.pem'),
         key: await readFile('key.pem'),
       },
-    },
-    /*{
+    },*/
+    {
       listenerID: 'http2',
       mode: 'http2',
       ip: 'localhost',
@@ -34,7 +34,7 @@ const server = new Server({
         enableConnectProtocol: true,
       },
     },
-    {
+    /*{
       listenerID: 'http3',
       mode: 'http3',
       ip: 'localhost',

@@ -206,7 +206,7 @@ export class Server {
   }
   
   async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders }) {
-    let processedHeaders = Object.fromEntries(Object.entries(req.headers));
+    let processedHeaders = Object.fromEntries(Object.entries(headers));
     
     delete processedHeaders[':path'];
     
@@ -215,12 +215,12 @@ export class Server {
       ...getIPObject(stream.session.socket),
       secure,
       ...(
-        req.headers[':method'] == 'CONNECT' ?
+        headers[':method'] == 'CONNECT' ?
         {
-          pathHostnameString: req.headers[':path'],
+          pathHostnameString: headers[':path'],
         } :
         {
-          pathString: req.headers[':path'],
+          pathString: headers[':path'],
         }
       ),
       headers: processedHeaders,
@@ -360,7 +360,7 @@ export class Server {
           
           const server = instance.server = createHTTP2Server(options);
           
-          server.on('session', async (stream, headers, flags, rawHeaders) => {
+          server.on('stream', async (stream, headers, flags, rawHeaders) => {
             await this.#handleHTTP2Request({
               listenerID,
               secure: true,
