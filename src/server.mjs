@@ -24,7 +24,7 @@ function getIPObject({
   remoteAddress,
   remotePort,
 }) {
-  if (family == 'IPv6') {
+  if (localFamily == 'IPv6') {
     return {
       ipFamily: localFamily,
       localAddress,
@@ -66,7 +66,7 @@ export class Server {
         mode: 'http1',
         req,
         res,
-        socket,
+        socket: req.socket,
       },
       respondFunc: (data, headers) => {
         let status;
@@ -167,6 +167,7 @@ export class Server {
         headers,
         flags,
         rawHeaders,
+        socket: stream.session.socket,
       },
       respondFunc: (data, headers) => {
         if (headers == null) {
