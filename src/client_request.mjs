@@ -100,6 +100,7 @@ export class ClientRequest {
       pathRaw: this.pathRaw,
       headers: this.headers,
       internal: this.internal,
+      respondFunc: this.#respondFunc,
     });
   }
   

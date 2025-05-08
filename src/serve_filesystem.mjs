@@ -3,6 +3,7 @@ import { stat } from 'node:fs/promises';
 import {
   join,
   sep,
+  relative,
 } from 'node:path';
 
 import mime from 'mime';
@@ -65,7 +66,7 @@ export async function serveFilesystem({
       'content-type': 'text/plain; charset=utf-8',
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
@@ -79,20 +80,20 @@ export async function serveFilesystem({
     return;
   }
   
-  if (clientRequest[':method'] != 'GET' && clientRequest[':method'] != 'HEAD') {
+  if (clientRequest.headers[':method'] != 'GET' && clientRequest.headers[':method'] != 'HEAD') {
     const headers = {
       ':status': 405,
       'content-type': 'text/plain; charset=utf-8',
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
       );
     } else {
       clientRequest.respond(
-        `Error: method ${JSON.stringify(clientRequest[':method'])} unknown`,
+        `Error: method ${JSON.stringify(clientRequest.headers[':method'])} unknown`,
         headers
       );
     }
@@ -113,7 +114,7 @@ export async function serveFilesystem({
       'content-type': 'text/plain; charset=utf-8',
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
@@ -167,7 +168,7 @@ export async function serveFilesystem({
       'content-length': stats.size,
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
@@ -213,7 +214,7 @@ function serveFilesystem_send404({ clientRequest, processedPath, serve404 }) {
       'content-type': 'text/plain; charset=utf-8',
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
@@ -238,7 +239,7 @@ function serveFilesystem_send500({ clientRequest, processedPath, serve500 }) {
       'content-type': 'text/plain; charset=utf-8',
     };
     
-    if (clientRequest[':method'] == 'HEAD') {
+    if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
         headers
