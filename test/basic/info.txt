@@ -1,0 +1,6 @@
+-- https://superuser.com/a/1103530
+openssl ecparam -name secp521r1 -genkey -noout -out key.pem
+openssl req -new -sha256 -key key.pem -out req.csr
+  press enter many times
+-- https://tecadmin.net/step-by-step-guide-to-creating-self-signed-ssl-certificates/
+openssl x509 -req -days 365000 -in req.csr -signkey key.pem -out cert.pem

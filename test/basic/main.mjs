@@ -41,9 +41,9 @@ const server = new Server({
   requestListener: async clientRequest => {
     console.log(`[${new Date().toISOString()}] ${clientRequest.headers[':method']} /${clientRequest.path}`);
     
-    if (clientRequest.pathMatch('file/')) {
+    if (clientRequest.pathMatch('files/')) {
       await serveFilesystem({
-        clientRequest: clientRequest.subRequest('file/'),
+        clientRequest: clientRequest.subRequest('files/'),
         fsPathPrefix: 'files',
       });
     } else if (clientRequest.path == 'ws') {
