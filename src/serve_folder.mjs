@@ -8,14 +8,6 @@ import {
 
 import mime from 'mime';
 
-function convertPathToLinuxSlashes(path) {
-  if (sep == '\\') {
-    return path.replaceAll('\\', '/');
-  } else {
-    return path;
-  }
-}
-
 async function awaitFileStreamReady(fileStream) {
   return await new Promise((r, j) => {
     const successListener = () => {
@@ -100,7 +92,17 @@ export async function serveFolder({
     return;
   }
   
-  let processedPath = convertPathToLinuxSlashes(clientRequest.path);
+  if (sep == '\\' && clientRequest.path.includes('\\')) {
+    // automatic 404 to simulate linux behavior of not having this path
+    serveFilesystem_send404({
+      clientRequest,
+      processedPath,
+      serve404,
+    });
+    return;
+  }
+  
+  let processedPath = clientRequest.path;
   
   if (processedPath == '' || processedPath.endsWith('/')) {
     processedPath += 'index.html';
