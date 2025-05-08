@@ -54,9 +54,10 @@ function mimeTypeIsText(mimeType) {
 export async function serveFilesystem({
   clientRequest,
   fsPathPrefix,
-  serve404, // optional
-  serve500, // optional
-  pathFilter, // optional
+  serve404 = null,
+  serve500 = null,
+  pathFilter = null,
+  errorReceiver = console.error,
 }) {
   if (clientRequest.path == null) {
     const headers = {
@@ -188,7 +189,9 @@ export async function serveFilesystem({
         serve404,
       });
     } else {
-      console.error(err);
+      if (errorReceiver != null) {
+        errorReceiver(err);
+      }
       
       serveFilesystem_send500({
         clientRequest,

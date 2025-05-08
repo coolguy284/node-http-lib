@@ -1,4 +1,6 @@
 servefs range requests including multipart
+compression if file / file chunk above 256 bytes threshold, configurable
+last modified, if-range support
 convert serveFs to not reveal win/linux based on '\' in url
 add local/remote address/port/family to clientrequest
 add a way to read data from request body
