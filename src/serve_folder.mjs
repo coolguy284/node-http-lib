@@ -52,7 +52,7 @@ function mimeTypeIsText(mimeType) {
   }
 }
 
-export async function serveFilesystem({
+export async function serveFolder({
   clientRequest,
   fsPathPrefix,
   serve404 = null,

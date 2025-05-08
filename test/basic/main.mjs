@@ -1,5 +1,5 @@
 import {
-  serveFilesystem,
+  serveFolder,
   Server,
 } from '../../src/main.mjs';
 
@@ -42,7 +42,7 @@ const server = new Server({
     console.log(`[${new Date().toISOString()}] ${clientRequest.headers[':method']} /${clientRequest.path}`);
     
     if (clientRequest.pathMatch('files/')) {
-      await serveFilesystem({
+      await serveFolder({
         clientRequest: clientRequest.subRequest('files/'),
         fsPathPrefix: 'files',
       });

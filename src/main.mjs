@@ -1,2 +1,2 @@
 export { Server } from './server.mjs';
-export { serveFilesystem } from './serve_filesystem.mjs';
+export { serveFolder } from './serve_folder.mjs';
