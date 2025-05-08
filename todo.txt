@@ -1,7 +1,9 @@
-servefs range requests including multipart
-compression if file / file chunk above 256 bytes threshold, configurable
-last modified, if-range support
 add a way to read data from request body
 websocket upgrade support
+http client support
+proxy support
+servefs:
+  range requests including multipart
+  compression if file / file chunk above 256 bytes threshold, configurable
+  last modified, if-range support
 http3 support
-http client support, proxy support
