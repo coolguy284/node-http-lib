@@ -242,7 +242,7 @@ export class Server {
         stream.respond(headers);
         
         if (data instanceof Readable) {
-          data.pipe(res);
+          data.pipe(stream);
         } else {
           stream.end(data);
         }
