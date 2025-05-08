@@ -251,6 +251,61 @@ export class Server {
     }));
   }
   
+  #createHttp1Server({
+    instance,
+    secure,
+  }) {
+    const server = instance.server;
+    const http1UpgradedSockets = instance.http1UpgradedSockets = new Set();
+    
+    server.on('request', async (req, res) => {
+      await this.#handleHTTP1Request({
+        listenerID,
+        secure,
+        req,
+        res,
+      });
+    });
+    
+    server.on('upgrade', async (req, socket, head) => {
+      if (!socket.destroyed) {
+        http1UpgradedSockets.add(socket);
+        
+        socket.on('close', () => {
+          http1UpgradedSockets.delete(socket);
+        });
+        
+        await this.#handleHTTP1Upgrade({
+          listenerID,
+          secure,
+          req,
+          socket,
+          head,
+        });
+      }
+    });
+    
+    server.on('connect', async (req, socket, head) => {
+      if (!socket.destroyed) {
+        // assuming connect requests also count as an upgrade
+        
+        http1UpgradedSockets.add(socket);
+        
+        socket.on('close', () => {
+          http1UpgradedSockets.delete(socket);
+        });
+        
+        await this.#handleHTTP1Connect({
+          listenerID,
+          secure,
+          req,
+          socket,
+          head,
+        });
+      }
+    });
+  }
+  
   /*
     instances:
     [
@@ -273,6 +328,8 @@ export class Server {
       
       newInstance.hasTlsComponent = false;
       newInstance.server = null;
+      newInstance.http1UpgradedSockets = null; // only used by http1
+      newInstance.http2Sessions = null; // only used by http2
       newInstance.firstInTlsComponent = null; // only used for https/http2 sharing
       newInstance.tlsServer = null; // only used for https/http2 sharing
       newInstance.tlsServerConnections = null; // only used for https/http2 sharing
@@ -292,35 +349,11 @@ export class Server {
             throw new Error(`options not object or undefined: ${options}`);
           }
           
-          const server = instance.server = createHTTPServer(options);
+          instance.server = createHTTPServer(options);
           
-          server.on('request', async (req, res) => {
-            await this.#handleHTTP1Request({
-              listenerID,
-              secure: false,
-              req,
-              res,
-            });
-          });
-          
-          server.on('upgrade', async (req, socket, head) => {
-            await this.#handleHTTP1Upgrade({
-              listenerID,
-              secure: false,
-              req,
-              socket,
-              head,
-            });
-          });
-          
-          server.on('connect', async (req, socket, head) => {
-            await this.#handleHTTP1Connect({
-              listenerID,
-              secure: false,
-              req,
-              socket,
-              head,
-            });
+          this.#createHttp1Server({
+            instance,
+            secure: false,
           });
           break;
         }
@@ -332,33 +365,9 @@ export class Server {
           
           const server = instance.server = createHTTPSServer(options);
           
-          server.on('request', async (req, res) => {
-            await this.#handleHTTP1Request({
-              listenerID,
-              secure: true,
-              req,
-              res,
-            });
-          });
-          
-          server.on('upgrade', async (req, socket, head) => {
-            await this.#handleHTTP1Upgrade({
-              listenerID,
-              secure: true,
-              req,
-              socket,
-              head,
-            });
-          });
-          
-          server.on('connect', async (req, socket, head) => {
-            await this.#handleHTTP1Connect({
-              listenerID,
-              secure: true,
-              req,
-              socket,
-              head,
-            });
+          this.#createHttp1Server({
+            instance,
+            secure: true,
           });
           
           const ipPortKey = `[${ip}]:${port}`;
@@ -417,6 +426,16 @@ export class Server {
           }
           
           const server = instance.server = createHTTP2Server(options);
+          
+          const http2Sessions = instance.http2Sessions = new Set();
+          
+          server.on('session', session => {
+            http2Sessions.add(session);
+            
+            session.on('close', () => {
+              http2Sessions.delete(session);
+            });
+          });
           
           server.on('stream', async (stream, headers, flags, rawHeaders) => {
             await this.#handleHTTP2Request({
@@ -524,13 +543,34 @@ export class Server {
     this.#listening = true;
   }
   
-  close() {
+  destroy() {
     if (!this.#listening) {
       throw new Error('cannot close servers, servers not listening yet');
     }
     
-    for (const { hasTlsComponent, firstInTlsComponent, server, tlsServer, tlsServerConnections } of this.#instances) {
-      server.closeAllConnections();
+    for (const {
+      mode,
+      http1UpgradedSockets,
+      http2Sessions,
+      hasTlsComponent,
+      firstInTlsComponent,
+      server,
+      tlsServer,
+      tlsServerConnections,
+    } of this.#instances) {
+      if (mode == 'http' || mode == 'https') {
+        server.closeAllConnections();
+        
+        for (const socket of http1UpgradedSockets) {
+          socket.destroy();
+        }
+      } else if (mode == 'http2') {
+        server.close();
+        
+        for (const session of http2Sessions) {
+          session.destroy();
+        }
+      }
       
       if (hasTlsComponent) {
         if (firstInTlsComponent) {
