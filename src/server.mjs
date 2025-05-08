@@ -150,6 +150,61 @@ export class Server {
     }));
   }
   
+  async #handleHTTP1Connect({ listenerID, secure, req, socket, head }) {
+    let headers = Object.fromEntries(Object.entries(req.headers));
+    
+    headers[':scheme'] = secure ? 'https' : 'http';
+    headers[':method'] = 'CONNECT';
+    headers[':authority'] = req.headers.host;
+    delete headers.host;
+    headers[':protocol'] = req.headers.upgrade;
+    delete headers.upgrade;
+    delete headers.connection;
+    
+    await this.#requestListener(ClientRequest.createNew({
+      listenerID,
+      ...getIPObject(socket),
+      secure,
+      pathHostnameString: req.url,
+      headers,
+      internal: {
+        mode: 'http1-connect',
+        req,
+        socket,
+        head,
+      },
+      respondFunc: (data, headers) => {
+        let status;
+        
+        if (headers == null) {
+          status = 200;
+          headers = {
+            'content-type': 'text/plain; charset=utf-8',
+          };
+        } else {
+          status = headers[':status'];
+          headers = Object.fromEntries(
+            Object.entries(headers)
+              .filter(([ key, _ ]) => key != ':status')
+          );
+        }
+        
+        socket.write(
+          `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
+          Object.fromEntries(headers)
+            .map(([ key, value ]) => `${key}: ${value}`)
+            .join('\r\n') + '\r\n\r\n'
+        );
+        
+        if (data instanceof Readable) {
+          data.pipe(socket);
+        } else {
+          socket.end(data);
+        }
+      },
+    }));
+  }
+  
   async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders }) {
     let processedHeaders = Object.fromEntries(Object.entries(req.headers));
     
@@ -159,7 +214,15 @@ export class Server {
       listenerID,
       ...getIPObject(stream.session.socket),
       secure,
-      pathString: req.headers[':path'],
+      ...(
+        req.headers[':method'] == 'CONNECT' ?
+        {
+          pathHostnameString: req.headers[':path'],
+        } :
+        {
+          pathString: req.headers[':path'],
+        }
+      ),
       headers: processedHeaders,
       internal: {
         mode: 'http2',
@@ -233,7 +296,17 @@ export class Server {
           server.on('upgrade', async (req, socket, head) => {
             await this.#handleHTTP1Upgrade({
               listenerID,
-              secure: true,
+              secure: false,
+              req,
+              socket,
+              head,
+            });
+          });
+          
+          server.on('connect', async (req, socket, head) => {
+            await this.#handleHTTP1Connect({
+              listenerID,
+              secure: false,
               req,
               socket,
               head,
@@ -260,6 +333,16 @@ export class Server {
           
           server.on('upgrade', async (req, socket, head) => {
             await this.#handleHTTP1Upgrade({
+              listenerID,
+              secure: true,
+              req,
+              socket,
+              head,
+            });
+          });
+          
+          server.on('connect', async (req, socket, head) => {
+            await this.#handleHTTP1Connect({
               listenerID,
               secure: true,
               req,

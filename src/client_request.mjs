@@ -8,6 +8,7 @@ export class ClientRequest {
   localPort;
   remoteAddress;
   remotePort;
+  pathIsHostname; // boolean, true if path is hostname (for CONNECT request)
   path; // string<URL pathname (URL-decoded), no search params, with initial '/' removed> | null
   pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
   pathRaw; // string<URL pathname, no processing>
@@ -46,21 +47,32 @@ export class ClientRequest {
     remoteAddress,
     remotePort,
     pathString,
+    pathHostnameString,
     headers,
     internal,
     respondFunc,
   }) {
-    let pathUrl;
-    try {
-      pathUrl = new URL(`https://domain/${pathString.slice(1)}`);
-    } catch { /* empty */ }
-    
+    let pathIsHostname;
     let path = null;
     let pathSearchParams = null;
     
-    if (pathUrl != null) {
-      path = decodeURIComponent(pathUrl.pathname).slice(1);
-      pathSearchParams = pathUrl.searchParams;
+    if (pathHostnameString != null) {
+      pathIsHostname = true;
+      
+      path = pathHostnameString;
+      pathSearchParams = new URLSearchParams();
+    } else {
+      pathIsHostname = false;
+      
+      let pathUrl;
+      try {
+        pathUrl = new URL(`https://domain/${pathString.slice(1)}`);
+      } catch { /* empty */ }
+      
+      if (pathUrl != null) {
+        path = decodeURIComponent(pathUrl.pathname).slice(1);
+        pathSearchParams = pathUrl.searchParams;
+      }
     }
     
     return new ClientRequest({
@@ -70,6 +82,7 @@ export class ClientRequest {
       localPort,
       remoteAddress,
       remotePort,
+      pathIsHostname,
       path,
       pathSearchParams,
       pathRaw: pathString,
@@ -86,6 +99,7 @@ export class ClientRequest {
     localPort,
     remoteAddress,
     remotePort,
+    pathIsHostname,
     path,
     pathSearchParams,
     pathRaw,
@@ -99,6 +113,7 @@ export class ClientRequest {
     this.localPort = localPort;
     this.remoteAddress = remoteAddress;
     this.remotePort = remotePort;
+    this.pathIsHostname = pathIsHostname;
     this.path = path;
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;

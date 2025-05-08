@@ -50,6 +50,11 @@ const server = new Server({
       `[${new Date().toISOString()}] ${clientRequest.listenerID} ${clientRequest.ipFamily} [${clientRequest.remoteAddress}]:${clientRequest.remotePort} ${clientRequest.headers[':method']} /${clientRequest.path}`
     );
     
+    if (clientRequest.pathIsHostname) {
+      clientRequest.respond('Error: connect requests unsupported', { ':status': 405 });
+      return;
+    }
+    
     if (clientRequest.pathMatch('files/')) {
       await serveFolder({
         clientRequest: clientRequest.subRequest('files/'),
@@ -80,7 +85,7 @@ const server = new Server({
         },
       );
     } else {
-      clientRequest.respond('not found', { ':status': 404 });
+      clientRequest.respond('Error: path not found', { ':status': 404 });
     }
   },
 });
