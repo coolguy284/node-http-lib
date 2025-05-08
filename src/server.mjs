@@ -255,7 +255,7 @@ export class Server {
     instance,
     secure,
   }) {
-    const server = instance.server;
+    const { listenerID, server } = instance;
     const http1UpgradedSockets = instance.http1UpgradedSockets = new Set();
     
     server.on('request', async (req, res) => {
