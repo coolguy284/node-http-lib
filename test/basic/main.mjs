@@ -39,7 +39,7 @@ const server = new Server({
     },*/
   ],
   requestListener: async clientRequest => {
-    console.log(`[${new Date().toISOString()}] ${clientRequest.headers[':method']} /${clientRequest.path}`);
+    console.log(`[${new Date().toISOString()}] ${clientRequest.ipFamily} [${clientRequest.remoteAddress}]:${clientRequest.remotePort} ${clientRequest.headers[':method']} /${clientRequest.path}`);
     
     if (clientRequest.pathMatch('files/')) {
       await serveFolder({

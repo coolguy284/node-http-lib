@@ -8,6 +8,41 @@ import { Readable } from 'node:stream';
 
 import { ClientRequest } from './client_request.mjs';
 
+function convertPossiblePseudoIPv6ToIPv4(ip) {
+  let match;
+  if (match = /::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/.exec(ip)) {
+    return match[1];
+  } else {
+    return ip;
+  }
+}
+
+function getIPObject({
+  localFamily,
+  localAddress,
+  localPort,
+  remoteAddress,
+  remotePort,
+}) {
+  if (family == 'IPv6') {
+    return {
+      ipFamily: localFamily,
+      localAddress,
+      localPort,
+      remoteAddress,
+      remotePort,
+    };
+  } else {
+    return {
+      ipFamily: localFamily,
+      localAddress: convertPossiblePseudoIPv6ToIPv4(localAddress),
+      localPort,
+      remoteAddress: convertPossiblePseudoIPv6ToIPv4(remoteAddress),
+      remotePort,
+    };
+  }
+}
+
 export class Server {
   #instances;
   #requestListener;
@@ -23,6 +58,7 @@ export class Server {
     
     await this.#requestListener(ClientRequest.createNew({
       listenerID,
+      ...getIPObject(req.socket),
       secure,
       pathString: req.url,
       headers,
@@ -30,6 +66,7 @@ export class Server {
         mode: 'http1',
         req,
         res,
+        socket,
       },
       respondFunc: (data, headers) => {
         let status;
@@ -71,6 +108,7 @@ export class Server {
     
     await this.#requestListener(ClientRequest.createNew({
       listenerID,
+      ...getIPObject(socket),
       secure,
       pathString: req.url,
       headers,
@@ -119,6 +157,7 @@ export class Server {
     
     await this.#requestListener(ClientRequest.createNew({
       listenerID,
+      ...getIPObject(stream.session.socket),
       secure,
       pathString: req.headers[':path'],
       headers: processedHeaders,

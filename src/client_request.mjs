@@ -3,6 +3,11 @@ export class ClientRequest {
   // protocol, regardless of the true request method
   #respondFunc;
   listenerID;
+  ipFamily; // 'IPv4' | 'IPv6'
+  localAddress;
+  localPort;
+  remoteAddress;
+  remotePort;
   path; // string<URL pathname (URL-decoded), no search params, with initial '/' removed> | null
   pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
   pathRaw; // string<URL pathname, no processing>
@@ -35,6 +40,11 @@ export class ClientRequest {
   
   static createNew({
     listenerID,
+    ipFamily,
+    localAddress,
+    localPort,
+    remoteAddress,
+    remotePort,
     pathString,
     headers,
     internal,
@@ -55,6 +65,11 @@ export class ClientRequest {
     
     return new ClientRequest({
       listenerID,
+      ipFamily,
+      localAddress,
+      localPort,
+      remoteAddress,
+      remotePort,
       path,
       pathSearchParams,
       pathRaw: pathString,
@@ -66,6 +81,11 @@ export class ClientRequest {
   
   constructor({
     listenerID,
+    ipFamily,
+    localAddress,
+    localPort,
+    remoteAddress,
+    remotePort,
     path,
     pathSearchParams,
     pathRaw,
@@ -74,6 +94,11 @@ export class ClientRequest {
     respondFunc,
   }) {
     this.listenerID = listenerID;
+    this.ipFamily = ipFamily;
+    this.localAddress = localAddress;
+    this.localPort = localPort;
+    this.remoteAddress = remoteAddress;
+    this.remotePort = remotePort;
     this.path = path;
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
