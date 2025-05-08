@@ -1,4 +1,3 @@
-ensure tls works
 https / http2 mixing
 servefs range requests including multipart
 compression if file / file chunk above 256 bytes threshold, configurable

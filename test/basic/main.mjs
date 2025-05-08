@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+
 import {
   serveFolder,
   Server,
@@ -6,11 +8,13 @@ import {
 const server = new Server({
   instances: [
     {
+      listenerID: 'http',
       mode: 'http',
       ip: 'localhost',
       port: 8080,
     },
-    /*{
+    {
+      listenerID: 'https',
       mode: 'https',
       ip: 'localhost',
       port: 8443,
@@ -19,7 +23,8 @@ const server = new Server({
         key: await readFile('key.pem'),
       },
     },
-    {
+    /*{
+      listenerID: 'http2',
       mode: 'http2',
       ip: 'localhost',
       port: 8443,
@@ -29,6 +34,7 @@ const server = new Server({
       },
     },
     {
+      listenerID: 'http3',
       mode: 'http3',
       ip: 'localhost',
       port: 8443,
@@ -39,7 +45,9 @@ const server = new Server({
     },*/
   ],
   requestListener: async clientRequest => {
-    console.log(`[${new Date().toISOString()}] ${clientRequest.ipFamily} [${clientRequest.remoteAddress}]:${clientRequest.remotePort} ${clientRequest.headers[':method']} /${clientRequest.path}`);
+    console.log(
+      `[${new Date().toISOString()}] ${clientRequest.listenerID} ${clientRequest.ipFamily} [${clientRequest.remoteAddress}]:${clientRequest.remotePort} ${clientRequest.headers[':method']} /${clientRequest.path}`
+    );
     
     if (clientRequest.pathMatch('files/')) {
       await serveFolder({
