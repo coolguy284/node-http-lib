@@ -1,5 +1,6 @@
 https / http2 mixing
 servefs range requests including multipart
+http1 connect request support
 compression if file / file chunk above 256 bytes threshold, configurable
 last modified, if-range support
 add a way to read data from request body

@@ -31,6 +31,7 @@ const server = new Server({
       options: {
         cert: await readFile('cert.pem'),
         key: await readFile('key.pem'),
+        enableConnectProtocol: true,
       },
     },
     {
