@@ -6,6 +6,7 @@ import {
 
 import {
   getProcessedPath,
+  serveFile,
   serveFile_send404,
 } from './serve_file.mjs';
 
