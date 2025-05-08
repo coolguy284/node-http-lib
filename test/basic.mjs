@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import {
   serveFilesystem,
   Server,
-} from './src/main.mjs';
+} from '../src/main.mjs';
 
 const server = new Server({
   instances: [
@@ -12,7 +12,7 @@ const server = new Server({
       ip: 'localhost',
       port: 8080,
     },
-    {
+    /*{
       mode: 'https',
       ip: 'localhost',
       port: 8443,
@@ -38,7 +38,7 @@ const server = new Server({
         cert: await readFile('cert.pem'),
         key: await readFile('key.pem'),
       },
-    },
+    },*/
   ],
   requestListener: async clientRequest => {
     console.log(`[${new Date().toISOString()}] ${clientRequest[':method']} /${clientRequest.path}`);

@@ -5,7 +5,7 @@ import {
   sep,
 } from 'node:path';
 
-import { getType } from 'mime';
+import mime from 'mime';
 
 function convertPathToLinuxSlashes(path) {
   if (sep == '\\') {
@@ -150,7 +150,7 @@ export async function serveFilesystem({
       return;
     }
     
-    const mimeType = getType(processedPath);
+    const mimeType = mime.getType(processedPath);
     
     let contentType;
     if (mimeType == null) {
