@@ -42,7 +42,7 @@ export class ClientRequest {
   }) {
     let pathUrl;
     try {
-      pathUrl = new URL(`https://domain/${pathString}`);
+      pathUrl = new URL(`https://domain/${pathString.slice(1)}`);
     } catch { /* empty */ }
     
     let path = null;

@@ -43,16 +43,16 @@ export class Server {
           status = headers[':status'];
           headers = Object.fromEntries(
             Object.entries(headers)
-              .map(([ key, _ ]) => key != ':status')
+              .filter(([ key, _ ]) => key != ':status')
           );
         }
         
-        req.writeHead(status, headers);
+        res.writeHead(status, headers);
         
         if (data instanceof Readable) {
           data.pipe(res);
         } else {
-          req.end(data);
+          res.end(data);
         }
       },
     }));
@@ -92,7 +92,7 @@ export class Server {
           status = headers[':status'];
           headers = Object.fromEntries(
             Object.entries(headers)
-              .map(([ key, _ ]) => key != ':status')
+              .filter(([ key, _ ]) => key != ':status')
           );
         }
         
