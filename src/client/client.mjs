@@ -1,8 +1,8 @@
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 
-import { ReadOnlySet } from './lib/read_only_set.mjs';
-import { streamToBuffer } from './lib/stream_to_buffer.mjs';
+import { ReadOnlySet } from '../lib/read_only_set.mjs';
+import { streamToBuffer } from '../lib/stream_to_buffer.mjs';
 
 export const VALID_REQUEST_PROTOS = new ReadOnlySet([
   'http',

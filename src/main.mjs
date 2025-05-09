@@ -4,7 +4,7 @@ export {
   RequestError,
   ResponseError,
   VALID_REQUEST_PROTOS,
-} from './client.mjs';
-export { Server } from './server.mjs';
-export { serveFolder } from './serve_folder.mjs';
-export { serveFile } from './serve_file.mjs';
+} from './client/client.mjs';
+export { Server } from './server/server.mjs';
+export { serveFolder } from './server/serve_folder.mjs';
+export { serveFile } from './server/serve_file.mjs';
