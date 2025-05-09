@@ -4,7 +4,7 @@ import { duplexPair } from 'node:stream';
 // with parameters:
 // ws: WebSocket
 // clientRequest: ClientRequest
-export function serveWs({
+export function serveWebSocket({
   clientRequest,
   wsServer,
 }) {

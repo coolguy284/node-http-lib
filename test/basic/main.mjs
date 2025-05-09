@@ -6,7 +6,7 @@ import {
   serveFile,
   serveFolder,
   Server,
-  serveWS,
+  serveWebSocket,
 } from '../../src/main.mjs';
 
 const wsServer = new WebSocketServer({ noServer: true });
@@ -74,7 +74,7 @@ const server = new Server({
         fsPathPrefix: 'files',
       });
     } else if (clientRequest.path == 'ws') {
-      await serveWS({
+      serveWebSocket({
         clientRequest,
         wsServer,
       });
