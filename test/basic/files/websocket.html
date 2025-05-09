@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WebSocket Test</title>
+  </head>
+  
+  <body>
+    <p>WebSocket Test</p>
+    
+    <div id = 'websocket_results'></div>
+    
+    <input type = 'text' id = 'websocket_input'>
+    
+    <button id = 'websocket_input_send'></button>
+    
+    <script type = 'module'>
+      const ws = new WebSocket('../ws');
+      
+      ws.addEventListener('message', evt => {
+        websocket_results.innerText += evt.data + '\n';
+      });
+      
+      function sendInput() {
+        ws.send(websocket_input.value);
+        
+        websocket_input.value = '';
+      }
+      
+      websocket_input.addEventListener('keydown', evt => {
+        if (evt.key == 'Enter') {
+          evt.preventDefault();
+          sendInput();
+        }
+      });
+      
+      websocket_input_send.addEventListener('click', () => {
+        sendInput();
+      });
+    </script>
+  </body>
+</html>

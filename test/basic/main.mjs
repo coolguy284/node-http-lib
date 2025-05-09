@@ -1,9 +1,20 @@
 import { readFile } from 'node:fs/promises';
 
+import { WebSocketServer } from 'ws';
+
 import {
+  serveFile,
   serveFolder,
   Server,
 } from '../../src/main.mjs';
+
+const wsServer = new WebSocketServer({ noServer: true });
+
+wsServer.on('connection', ws => {
+  ws.on('message', msg => {
+    ws.send(`recv ${new Date().toISOString()}; ${msg}`);
+  });
+});
 
 const server = new Server({
   instances: [
@@ -67,24 +78,10 @@ const server = new Server({
     } else if (clientRequest.path == 'file.txt') {
       clientRequest.respond(`plain text ${new Date().toISOString()}`);
     } else if (clientRequest.path == '') {
-      clientRequest.respond(
-`<!doctype html>
-<html>
-  <head>
-    <title>Index</title>
-  </head>
-  <body>
-    <ul>
-      <li><a href = 'file.txt'>file.txt</a></li>
-      <li><a href = 'files/'>files</a></li>
-    </ul>
-  </body>
-</html>`,
-        {
-          ':status': 200,
-          'content-type': 'text/html; charset=utf-8',
-        },
-      );
+      await serveFile({
+        clientRequest,
+        fsPath: 'index.html',
+      });
     } else {
       clientRequest.respond('Error: path not found', { ':status': 404 });
     }
