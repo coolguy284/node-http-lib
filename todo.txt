@@ -1,4 +1,3 @@
-fix stream not including head on request
 websocket upgrade support
 proxy support
 servefs:

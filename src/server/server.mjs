@@ -8,6 +8,7 @@ import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
 import { ClientRequest } from './client_request.mjs';
+import { multiStream } from '../lib/multi_stream.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {
   let match;
@@ -114,7 +115,10 @@ export class Server {
       secure,
       pathString: req.url,
       headers,
-      stream: socket,
+      stream: multiStream([
+        head,
+        socket,
+      ]),
       internal: {
         mode: 'http1-upgrade',
         req,
@@ -170,7 +174,10 @@ export class Server {
       secure,
       pathHostnameString: req.url,
       headers,
-      stream: socket,
+      stream: multiStream([
+        head,
+        socket,
+      ]),
       internal: {
         mode: 'http1-connect',
         req,
