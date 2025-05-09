@@ -1,6 +1,5 @@
 add a way to read data from request body
 websocket upgrade support
-http client support
 proxy support
 servefs:
   range requests including multipart
