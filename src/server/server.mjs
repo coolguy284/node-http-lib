@@ -143,7 +143,7 @@ export class Server {
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.fromEntries(headers)
+          Object.entries(headers)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );
@@ -202,7 +202,7 @@ export class Server {
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.fromEntries(headers)
+          Object.entries(headers)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );

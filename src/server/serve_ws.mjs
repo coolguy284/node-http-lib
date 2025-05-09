@@ -32,7 +32,7 @@ export function serveWebSocket({
         {
           ...headers,
           ':status': 101,
-        }
+        },
       );
       clientRequest.streamReadable.pipe(serveWsEnd);
     } else {
@@ -42,7 +42,7 @@ export function serveWebSocket({
         {
           ...headers,
           ':status': 200,
-        }
+        },
       );
       clientRequest.streamReadable.pipe(serveWsEnd);
     }
