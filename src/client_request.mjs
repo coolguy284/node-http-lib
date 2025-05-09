@@ -37,6 +37,7 @@ export class ClientRequest {
         rawHeaders: Array,
     }
   */
+  stream; // stream.Readable
   internal;
   
   static createNew({
@@ -49,6 +50,7 @@ export class ClientRequest {
     pathString,
     pathHostnameString,
     headers,
+    stream,
     internal,
     respondFunc,
   }) {
@@ -87,6 +89,7 @@ export class ClientRequest {
       pathSearchParams,
       pathRaw: pathString,
       headers,
+      stream,
       internal,
       respondFunc,
     });
@@ -104,6 +107,7 @@ export class ClientRequest {
     pathSearchParams,
     pathRaw,
     headers,
+    stream,
     internal,
     respondFunc,
   }) {
@@ -118,6 +122,7 @@ export class ClientRequest {
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
     this.headers = headers;
+    this.stream = stream;
     this.internal = internal;
     this.#respondFunc = respondFunc;
   }

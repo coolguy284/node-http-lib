@@ -1,4 +1,4 @@
-add a way to read data from request body
+fix stream not including head on request
 websocket upgrade support
 proxy support
 servefs:
