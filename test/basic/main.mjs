@@ -6,6 +6,7 @@ import {
   serveFile,
   serveFolder,
   Server,
+  serveWS,
 } from '../../src/main.mjs';
 
 const wsServer = new WebSocketServer({ noServer: true });
@@ -34,7 +35,7 @@ const server = new Server({
         key: await readFile('key.pem'),
       },
     },
-    {
+    /*{
       listenerID: 'http2',
       mode: 'http2',
       ip: 'localhost',
@@ -46,7 +47,7 @@ const server = new Server({
         enableConnectProtocol: true,
       },
     },
-    /*{
+    {
       listenerID: 'http3',
       mode: 'http3',
       ip: 'localhost',
@@ -73,8 +74,10 @@ const server = new Server({
         fsPathPrefix: 'files',
       });
     } else if (clientRequest.path == 'ws') {
-      // TODO
-      await serveWS({});
+      await serveWS({
+        clientRequest,
+        wsServer,
+      });
     } else if (clientRequest.path == 'file.txt') {
       clientRequest.respond(`plain text ${new Date().toISOString()}`);
     } else if (clientRequest.path == '') {

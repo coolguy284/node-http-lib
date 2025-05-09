@@ -1,4 +1,3 @@
-websocket upgrade support
 proxy support
 servefs:
   range requests including multipart
