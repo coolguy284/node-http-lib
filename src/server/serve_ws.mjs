@@ -26,7 +26,7 @@ export function serveWebSocket({
         })
     );
     
-    if (clientRequest.internal.mode == 'http' || clientRequest.internal.mode == 'https') {
+    if (clientRequest.internal.mode == 'http1-upgrade') {
       clientRequest.respond(
         serveWsEnd,
         {
