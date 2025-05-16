@@ -1,5 +1,6 @@
 import { constants } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 const TLS_OPTIONS = {
   secureOptions:
@@ -20,8 +21,8 @@ const TLS_OPTIONS = {
     '@STRENGTH',
   ].join(':'),
   
-  cert: await readFile('cert.pem'),
-  key: await readFile('key.pem'),
+  cert: await readFile(join(import.meta.dirname, 'cert.pem')),
+  key: await readFile(join(import.meta.dirname, 'key.pem')),
 };
 
 export const INSTANCES = [
@@ -55,8 +56,8 @@ export const INSTANCES = [
     ip: 'localhost',
     port: 8443,
     options: {
-      cert: await readFile('cert.pem'),
-      key: await readFile('key.pem'),
+      cert: await readFile(join(import.meta.dirname, 'cert.pem')),
+      key: await readFile(join(import.meta.dirname, 'key.pem')),
     },
   },*/
 ];
