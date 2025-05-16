@@ -7,56 +7,39 @@ import {
 import {
   getProcessedPath,
   serveFile,
-  serveFile_send404,
 } from './serve_file.mjs';
+import {
+  serveFile_send400_badURL,
+  serveFile_send403,
+  serveFile_send404,
+  serveFile_send405,
+} from './serve_file_helpers.mjs';
 
 export async function serveFolder({
   clientRequest,
   fsPathPrefix,
   serve400 = null,
+  serve403 = null,
   serve404 = null,
+  serve405 = null,
   serve416 = null,
   serve500 = null,
   pathFilter = null,
   errorReceiver = console.error,
 }) {
   if (clientRequest.path == null) {
-    const headers = {
-      ':status': 400,
-      'content-type': 'text/plain; charset=utf-8',
-    };
-    
-    if (clientRequest.headers[':method'] == 'HEAD') {
-      clientRequest.respond(
-        '',
-        headers,
-      );
-    } else {
-      clientRequest.respond(
-        `Error: unparseable URL: ${JSON.stringify(clientRequest.pathRaw)}`,
-        headers,
-      );
-    }
+    serveFile_send400_badURL({
+      clientRequest,
+      serve400,
+    });
     return;
   }
   
   if (clientRequest.headers[':method'] != 'GET' && clientRequest.headers[':method'] != 'HEAD') {
-    const headers = {
-      ':status': 405,
-      'content-type': 'text/plain; charset=utf-8',
-    };
-    
-    if (clientRequest.headers[':method'] == 'HEAD') {
-      clientRequest.respond(
-        '',
-        headers,
-      );
-    } else {
-      clientRequest.respond(
-        `Error: method ${JSON.stringify(clientRequest.headers[':method'])} unknown`,
-        headers,
-      );
-    }
+    serveFile_send405({
+      clientRequest,
+      serve405,
+    });
     return;
   }
   
@@ -75,22 +58,11 @@ export async function serveFolder({
   const pathLeavesBounds = relative('.', processedPath).split('/')[0] == '..';
   
   if (pathLeavesBounds) {
-    const headers = {
-      ':status': 403,
-      'content-type': 'text/plain; charset=utf-8',
-    };
-    
-    if (clientRequest.headers[':method'] == 'HEAD') {
-      clientRequest.respond(
-        '',
-        headers,
-      );
-    } else {
-      clientRequest.respond(
-        `Error: path ${JSON.stringify(processedPath)} leaves containing folder`,
-        headers,
-      );
-    }
+    serveFile_send403({
+      clientRequest,
+      processedPath,
+      serve403,
+    });
     return;
   }
   

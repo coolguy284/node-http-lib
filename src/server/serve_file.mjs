@@ -3,6 +3,13 @@ import { stat } from 'node:fs/promises';
 
 import mime from 'mime';
 
+import {
+  serveFile_send400_generic,
+  serveFile_send404,
+  serveFile_send416,
+  serveFile_send500,
+} from './serve_file_helpers.mjs';
+
 export function getProcessedPath(clientRequestPath) {
   let processedPath = clientRequestPath;
   
@@ -76,7 +83,7 @@ export async function serveFile({
       const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(clientRequest.headers.range);
       
       if (match == null) {
-        serveFile_send400({
+        serveFile_send400_generic({
           clientRequest,
           processedPath,
           serve400,
@@ -87,7 +94,7 @@ export async function serveFile({
       const [ unit, rangeString ] = match.slice(1);
       
       if (unit != 'bytes') {
-        serveFile_send400({
+        serveFile_send400_generic({
           clientRequest,
           processedPath,
           serve400,
@@ -120,7 +127,7 @@ export async function serveFile({
       for (const { start, end } of ranges) {
         if (start == null && end == null) {
           // invalid
-          serveFile_send400({
+          serveFile_send400_generic({
             clientRequest,
             processedPath,
             serve400,
