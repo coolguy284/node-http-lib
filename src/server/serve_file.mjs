@@ -107,7 +107,7 @@ export async function serveFile({
     const stats = await stat(fsPath);
     
     if (!stats.isFile()) {
-      serveFile_send404({
+      await serveFile_send404({
         clientRequest,
         processedPath,
         serve404,
@@ -121,7 +121,7 @@ export async function serveFile({
       const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(clientRequest.headers.range);
       
       if (match == null) {
-        serveFile_send400_generic({
+        await serveFile_send400_generic({
           clientRequest,
           processedPath,
           serve400,
@@ -132,7 +132,7 @@ export async function serveFile({
       const [ unit, rangeString ] = match.slice(1);
       
       if (unit != 'bytes') {
-        serveFile_send400_generic({
+        await serveFile_send400_generic({
           clientRequest,
           processedPath,
           serve400,
@@ -154,7 +154,7 @@ export async function serveFile({
       
       if (ranges.length > 1) {
         // reject multipart range requests for now
-        serveFile_send416({
+        await serveFile_send416({
           clientRequest,
           processedPath,
           serve416,
@@ -165,7 +165,7 @@ export async function serveFile({
       for (const { start, end } of ranges) {
         if (start == null && end == null) {
           // invalid
-          serveFile_send400_generic({
+          await serveFile_send400_generic({
             clientRequest,
             processedPath,
             serve400,
@@ -174,7 +174,7 @@ export async function serveFile({
         } else if (start == null && end != null) {
           // check that suffix length is permissible
           if (end > stats.size) {
-            serveFile_send416({
+            await serveFile_send416({
               clientRequest,
               processedPath,
               serve416,
@@ -184,7 +184,7 @@ export async function serveFile({
         } else if (start != null && end == null) {
           // check if start is in range
           if (start >= stats.size) {
-            serveFile_send416({
+            await serveFile_send416({
               clientRequest,
               processedPath,
               serve416,
@@ -194,7 +194,7 @@ export async function serveFile({
         } else if (start != null && end != null) {
           // check if start & end are in range
           if (start >= stats.size || end >= stats.size) {
-            serveFile_send416({
+            await serveFile_send416({
               clientRequest,
               processedPath,
               serve416,
@@ -204,7 +204,7 @@ export async function serveFile({
           
           // check that end > start
           if (end < start) {
-            serveFile_send416({
+            await serveFile_send416({
               clientRequest,
               processedPath,
               serve416,
@@ -327,7 +327,7 @@ export async function serveFile({
     }
   } catch (err) {
     if (err.code == 'ENOENT') {
-      serveFile_send404({
+      await serveFile_send404({
         clientRequest,
         processedPath,
         serve404,
@@ -337,7 +337,7 @@ export async function serveFile({
         errorReceiver(err);
       }
       
-      serveFile_send500({
+      await serveFile_send500({
         clientRequest,
         processedPath,
         serve500,

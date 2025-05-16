@@ -17,9 +17,9 @@ function serveFile_sendInternal({ statusCode, errorMsg }) {
   }
 }
 
-export function serveFile_send400_generic({ clientRequest, processedPath, serve400 }) {
+export async function serveFile_send400_generic({ clientRequest, processedPath, serve400 }) {
   if (serve400 != null) {
-    serve400({
+    await serve400({
       clientRequest,
     });
   } else {
@@ -30,9 +30,9 @@ export function serveFile_send400_generic({ clientRequest, processedPath, serve4
   }
 }
 
-export function serveFile_send400_badURL({ clientRequest, serve400 }) {
+export async function serveFile_send400_badURL({ clientRequest, serve400 }) {
   if (serve400 != null) {
-    serve400({
+    await serve400({
       clientRequest,
     });
   } else {
@@ -43,9 +43,9 @@ export function serveFile_send400_badURL({ clientRequest, serve400 }) {
   }
 }
 
-export function serveFile_send403({ clientRequest, processedPath, serve403 }) {
+export async function serveFile_send403({ clientRequest, processedPath, serve403 }) {
   if (serve403 != null) {
-    serve403({
+    await serve403({
       clientRequest,
     });
   } else {
@@ -56,9 +56,9 @@ export function serveFile_send403({ clientRequest, processedPath, serve403 }) {
   }
 }
 
-export function serveFile_send404({ clientRequest, processedPath, serve404 }) {
+export async function serveFile_send404({ clientRequest, processedPath, serve404 }) {
   if (serve404 != null) {
-    serve404({
+    await serve404({
       clientRequest,
     });
   } else {
@@ -69,9 +69,9 @@ export function serveFile_send404({ clientRequest, processedPath, serve404 }) {
   }
 }
 
-export function serveFile_send405({ clientRequest, serve405 }) {
+export async function serveFile_send405({ clientRequest, serve405 }) {
   if (serve405 != null) {
-    serve405({
+    await serve405({
       clientRequest,
     });
   } else {
@@ -82,9 +82,9 @@ export function serveFile_send405({ clientRequest, serve405 }) {
   }
 }
 
-export function serveFile_send416({ clientRequest, processedPath, serve416 }) {
+export async function serveFile_send416({ clientRequest, processedPath, serve416 }) {
   if (serve416 != null) {
-    serve416({
+    await serve416({
       clientRequest,
     });
   } else {
@@ -95,9 +95,9 @@ export function serveFile_send416({ clientRequest, processedPath, serve416 }) {
   }
 }
 
-export function serveFile_send500({ clientRequest, processedPath, serve500 }) {
+export async function serveFile_send500({ clientRequest, processedPath, serve500 }) {
   if (serve500 != null) {
-    serve500({
+    await serve500({
       clientRequest,
     });
   } else {

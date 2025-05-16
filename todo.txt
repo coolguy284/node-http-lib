@@ -4,5 +4,4 @@ servefs:
   last modified, if-range support
   support for last modified or etag overrides
   custom fs func support for serve file
-  await serve400, 404
 http3 support

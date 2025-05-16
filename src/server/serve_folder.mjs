@@ -28,7 +28,7 @@ export async function serveFolder({
   errorReceiver = console.error,
 }) {
   if (clientRequest.path == null) {
-    serveFile_send400_badURL({
+    await serveFile_send400_badURL({
       clientRequest,
       serve400,
     });
@@ -36,7 +36,7 @@ export async function serveFolder({
   }
   
   if (clientRequest.headers[':method'] != 'GET' && clientRequest.headers[':method'] != 'HEAD') {
-    serveFile_send405({
+    await serveFile_send405({
       clientRequest,
       serve405,
     });
@@ -45,7 +45,7 @@ export async function serveFolder({
   
   if (sep == '\\' && clientRequest.path.includes('\\')) {
     // automatic 404 to simulate linux behavior of not having this path
-    serveFile_send404({
+    await serveFile_send404({
       clientRequest,
       processedPath,
       serve404,
@@ -58,7 +58,7 @@ export async function serveFolder({
   const pathLeavesBounds = relative('.', processedPath).split('/')[0] == '..';
   
   if (pathLeavesBounds) {
-    serveFile_send403({
+    await serveFile_send403({
       clientRequest,
       processedPath,
       serve403,
@@ -67,7 +67,7 @@ export async function serveFolder({
   }
   
   if (pathFilter != null && !pathFilter(processedPath)) {
-    serveFile_send404({
+    await serveFile_send404({
       clientRequest,
       processedPath,
       serve404,
