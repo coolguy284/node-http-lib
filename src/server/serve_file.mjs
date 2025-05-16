@@ -78,18 +78,18 @@ function mimeTypeIsText(mimeType) {
   }
 }
 
-function getRangeBoundsFromObject({ start, end }) {
-  let start, end;
+function getRangeBoundsFromObject({ start, end, size }) {
+  let processedStart, processedEnd;
   
-  if (range.start == null && range.end != null) {
-    start = stats.size - range.end;
-    end = stats.size - 1;
+  if (start == null && end != null) {
+    processedStart = size - end;
+    processedEnd = size - 1;
   } else {
-    start = range.start ?? 0;
-    end = range.end ?? stats.size - 1;
+    processedStart = start ?? 0;
+    processedEnd = end ?? size - 1;
   }
   
-  return [start, end];
+  return [processedStart, processedEnd];
 }
 
 export async function serveFile({
@@ -249,7 +249,7 @@ export async function serveFile({
             let multiStreamSegments = [];
             
             for (const range of ranges) {
-              const [ start, end ] = getRangeBoundsFromObject(range);
+              const [ start, end ] = getRangeBoundsFromObject({ ...range, size: stats.size });
               
               multiStreamSegments.push(
                 `--${boundary}\r\n` +
@@ -277,7 +277,7 @@ export async function serveFile({
           }
         }
       } else {
-        const [ start, end ] = getRangeBoundsFromObject(ranges[0]);
+        const [ start, end ] = getRangeBoundsFromObject({ ...ranges[0], size: stats.size });
         
         const headers = {
           ':status': 206,
