@@ -223,7 +223,7 @@ export async function serveFile({
   }
 }
 
-export function serveFile_send404({ clientRequest, processedPath, serve400 }) {
+export function serveFile_send400({ clientRequest, processedPath, serve400 }) {
   if (serve400 != null) {
     serve400({
       clientRequest,
