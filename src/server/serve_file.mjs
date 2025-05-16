@@ -79,6 +79,8 @@ export async function serveFile({
       return;
     }
     
+    let ranges;
+    
     if ('range' in clientRequest.headers) {
       const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(clientRequest.headers.range);
       
@@ -102,7 +104,7 @@ export async function serveFile({
         return;
       }
       
-      const ranges =
+      ranges =
         rangeString
           .split(', ')
           .map(range => {
@@ -188,26 +190,67 @@ export async function serveFile({
       contentType = mimeType;
     }
     
-    const headers = {
-      ':status': 200,
-      'accept-ranges': 'bytes',
-      'content-type': contentType,
-      'content-length': stats.size,
-    };
-    
-    if (clientRequest.headers[':method'] == 'HEAD') {
-      clientRequest.respond(
-        '',
-        headers,
-      );
+    if ('range' in clientRequest.headers) {
+      if (ranges.length > 1) {
+        
+      } else {
+        const range = ranges[0];
+        
+        let start, end;
+        
+        if (range.start == null && range.end != null) {
+          start = stats.size - range.end;
+          end = stats.size - 1;
+        } else {
+          start = range.start ?? 0;
+          end = range.end ?? stats.size - 1;
+        }
+        
+        const headers = {
+          ':status': 206,
+          'accept-ranges': 'bytes',
+          'content-range': `bytes ${start}-${end}/${stats.size}`,
+          'content-type': contentType,
+          'content-length': '' + (end - start + 1),
+        };
+        
+        if (clientRequest.headers[':method'] == 'HEAD') {
+          clientRequest.respond(
+            '',
+            headers,
+          );
+        } else {
+          const fileStream = createReadStream(fsPath, { start, end });
+          await awaitFileStreamReady(fileStream);
+          
+          clientRequest.respond(
+            fileStream,
+            headers,
+          );
+        }
+      }
     } else {
-      const fileStream = createReadStream(fsPath);
-      await awaitFileStreamReady(fileStream);
+      const headers = {
+        ':status': 200,
+        'accept-ranges': 'bytes',
+        'content-type': contentType,
+        'content-length': stats.size,
+      };
       
-      clientRequest.respond(
-        fileStream,
-        headers,
-      );
+      if (clientRequest.headers[':method'] == 'HEAD') {
+        clientRequest.respond(
+          '',
+          headers,
+        );
+      } else {
+        const fileStream = createReadStream(fsPath);
+        await awaitFileStreamReady(fileStream);
+        
+        clientRequest.respond(
+          fileStream,
+          headers,
+        );
+      }
     }
   } catch (err) {
     if (err.code == 'ENOENT') {
