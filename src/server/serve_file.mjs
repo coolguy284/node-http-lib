@@ -70,6 +70,94 @@ export async function serveFile({
       return;
     }
     
+    if ('range' in clientRequest.headers) {
+      const match = /^(\w+)=((?:\d*-\d*, )\d*-\d*)$/.exec(clientRequest.headers.range);
+      
+      if (match == null) {
+        serveFile_send400({
+          clientRequest,
+          processedPath,
+          serve400,
+        });
+        return;
+      }
+      
+      const [ unit, rangeString ] = match.slice(1);
+      
+      if (unit != 'bytes') {
+        serveFile_send400({
+          clientRequest,
+          processedPath,
+          serve400,
+        });
+        return;
+      }
+      
+      const ranges =
+        rangeString
+          .split(', ')
+          .map(range => {
+            const [ startString, endString ] = /^(\d*)-(\d*)$/.exec(range).slice(1);
+            
+            return {
+              start: startString != '' ? parseInt(startString) : null,
+              end: endString != '' ? parseInt(endString) : null,
+            };
+          });
+      
+      for (const { start, end } of ranges) {
+        if (start == null && end == null) {
+          // invalid
+          serveFile_send400({
+            clientRequest,
+            processedPath,
+            serve400,
+          });
+          return;
+        } else if (start == null && end != null) {
+          // check that suffix length is permissible
+          if (end > stats.size) {
+            serveFile_send416({
+              clientRequest,
+              processedPath,
+              serve416,
+            });
+            return;
+          }
+        } else if (start != null && end == null) {
+          // check if start is in range
+          if (start >= stats.size) {
+            serveFile_send416({
+              clientRequest,
+              processedPath,
+              serve416,
+            });
+            return;
+          }
+        } else if (start != null && end != null) {
+          // check if start & end are in range
+          if (start >= stats.size || end >= stats.size) {
+            serveFile_send416({
+              clientRequest,
+              processedPath,
+              serve416,
+            });
+            return;
+          }
+          
+          // check that end > start
+          if (end < start) {
+            serveFile_send416({
+              clientRequest,
+              processedPath,
+              serve416,
+            });
+            return;
+          }
+        }
+      }
+    }
+    
     const mimeType = mime.getType(processedPath);
     
     let contentType;
@@ -83,6 +171,7 @@ export async function serveFile({
     
     const headers = {
       ':status': 200,
+      'accept-ranges': 'bytes',
       'content-type': contentType,
       'content-length': stats.size,
     };
