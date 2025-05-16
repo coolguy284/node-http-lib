@@ -95,6 +95,9 @@ function getRangeBoundsFromObject({ start, end, size }) {
 export async function serveFile({
   clientRequest,
   fsPath,
+  includeLastModified = true,
+  lastModifiedOverrides = null,
+  etags = null,
   serve400 = null,
   serve404 = null,
   serve416 = null,
@@ -230,11 +233,29 @@ export async function serveFile({
       if (ranges.length > 1) {
         const boundary = randomBytes(32).toString('hex');
         
+        let contentLength = 0;
+        
+        for (const range of ranges) {
+          const [ start, end ] = getRangeBoundsFromObject({ ...range, size: stats.size });
+          
+          contentLength += (
+            `--${boundary}\r\n` +
+            `content-type: ${contentType}\r\n` + 
+            `content-range: ${start}-${end}/${stats.size}\r\n`
+          ).length;
+          
+          contentLength += end - start + 1;
+          
+          contentLength += '\r\n'.length;
+        }
+        
+        contentLength += `--${boundary}--`.length;
+        
         const headers = {
           ':status': 206,
           'accept-ranges': 'bytes',
           'content-type': `multipart/byteranges; boundary=${boundary}`,
-          'content-length': '', // TODO
+          'content-length': '' + contentLength,
         };
         
         if (clientRequest.headers[':method'] == 'HEAD') {

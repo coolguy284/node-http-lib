@@ -18,6 +18,9 @@ import {
 export async function serveFolder({
   clientRequest,
   fsPathPrefix,
+  includeLastModified = true,
+  lastModifiedOverrides = null,
+  etags = null,
   serve400 = null,
   serve403 = null,
   serve404 = null,
@@ -80,6 +83,9 @@ export async function serveFolder({
   await serveFile({
     clientRequest,
     fsPath: resultFsPath,
+    includeLastModified,
+    lastModifiedOverrides,
+    etags,
     serve400,
     serve404,
     serve416,

@@ -1,7 +1,9 @@
 proxy support
 servefs:
-  compression if file / file chunk above 256 bytes threshold, configurable
   last modified, if-range support
   support for last modified or etag overrides
   custom fs func support for serve file
 http3 support
+
+low prio:
+servefs compression if file / file chunk above 256 bytes threshold, configurable
