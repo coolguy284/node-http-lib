@@ -1,8 +1,8 @@
 proxy support
 servefs:
-  range requests including multipart
   compression if file / file chunk above 256 bytes threshold, configurable
   last modified, if-range support
   support for last modified or etag overrides
   custom fs func support for serve file
+  await serve400, 404
 http3 support

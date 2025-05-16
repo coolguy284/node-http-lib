@@ -1,8 +1,13 @@
+import { randomBytes } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import {
+  open,
+  stat,
+} from 'node:fs/promises';
 
 import mime from 'mime';
 
+import { multiStream } from '../lib/multi_stream.mjs';
 import {
   serveFile_send400_generic,
   serveFile_send404,
@@ -37,6 +42,23 @@ async function awaitFileStreamReady(fileStream) {
   });
 }
 
+async function awaitFileStreamEnd(fileStream) {
+  return await new Promise((r, j) => {
+    const successListener = () => {
+      r();
+      fileStream.off('error', errorListener);
+    };
+    
+    const errorListener = err => {
+      j(err);
+      fileStream.off('end', successListener);
+    };
+    
+    fileStream.once('error', errorListener);
+    fileStream.once('end', successListener);
+  });
+}
+
 // https://stackoverflow.com/a/66164189
 const TEXTUAL_APPLICATION_TYPES = new Set([
   'json', 'ld+json', 'x-httpd-php', 'x-sh', 'x-csh', 'xml',
@@ -54,6 +76,20 @@ function mimeTypeIsText(mimeType) {
   } else {
     return false;
   }
+}
+
+function getRangeBoundsFromObject({ start, end }) {
+  let start, end;
+  
+  if (range.start == null && range.end != null) {
+    start = stats.size - range.end;
+    end = stats.size - 1;
+  } else {
+    start = range.start ?? 0;
+    end = range.end ?? stats.size - 1;
+  }
+  
+  return [start, end];
 }
 
 export async function serveFile({
@@ -192,19 +228,56 @@ export async function serveFile({
     
     if ('range' in clientRequest.headers) {
       if (ranges.length > 1) {
+        const boundary = randomBytes(32).toString('hex');
         
-      } else {
-        const range = ranges[0];
+        const headers = {
+          ':status': 206,
+          'accept-ranges': 'bytes',
+          'content-type': `multipart/byteranges; boundary=${boundary}`,
+          'content-length': '', // TODO
+        };
         
-        let start, end;
-        
-        if (range.start == null && range.end != null) {
-          start = stats.size - range.end;
-          end = stats.size - 1;
+        if (clientRequest.headers[':method'] == 'HEAD') {
+          clientRequest.respond(
+            '',
+            headers,
+          );
         } else {
-          start = range.start ?? 0;
-          end = range.end ?? stats.size - 1;
+          const fd = await open(fsPath);
+          
+          try {
+            let multiStreamSegments = [];
+            
+            for (const range of ranges) {
+              const [ start, end ] = getRangeBoundsFromObject(range);
+              
+              multiStreamSegments.push(
+                `--${boundary}\r\n` +
+                `content-type: ${contentType}\r\n` + 
+                `content-range: ${start}-${end}/${stats.size}\r\n`
+              );
+              
+              multiStreamSegments.push(fd.createReadStream({ start, end, autoClose: false }));
+              
+              multiStreamSegments.push('\r\n');
+            }
+            
+            multiStreamSegments.push(`--${boundary}--`);
+            
+            const fileStream = multiStream(multiStreamSegments);
+            
+            clientRequest.respond(
+              fileStream,
+              headers,
+            );
+            
+            await awaitFileStreamEnd(fileStream);
+          } finally {
+            await fd[Symbol.asyncDispose]();
+          }
         }
+      } else {
+        const [ start, end ] = getRangeBoundsFromObject(ranges[0]);
         
         const headers = {
           ':status': 206,
