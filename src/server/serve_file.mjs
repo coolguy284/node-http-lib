@@ -191,7 +191,7 @@ export async function serveFile({
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       const fileStream = createReadStream(fsPath);
@@ -199,7 +199,7 @@ export async function serveFile({
       
       clientRequest.respond(
         fileStream,
-        headers
+        headers,
       );
     }
   } catch (err) {
@@ -237,12 +237,12 @@ export function serveFile_send400({ clientRequest, processedPath, serve400 }) {
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: file ${JSON.stringify(processedPath)}, range ${JSON.stringify(clientRequest.headers.range)} invalid`,
-        headers
+        headers,
       );
     }
   }
@@ -262,12 +262,12 @@ export function serveFile_send404({ clientRequest, processedPath, serve404 }) {
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: file ${JSON.stringify(processedPath)} not found`,
-        headers
+        headers,
       );
     }
   }
@@ -286,12 +286,12 @@ export function serveFile_send416({ clientRequest, processedPath, serve416 }) {
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: file ${JSON.stringify(processedPath)}, range ${JSON.stringify(clientRequest.headers.range)} not satisfyable`,
-        headers
+        headers,
       );
     }
   }
@@ -311,12 +311,12 @@ export function serveFile_send500({ clientRequest, processedPath, serve500 }) {
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
-        headers
+        headers,
       );
     }
   }

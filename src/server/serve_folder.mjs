@@ -29,12 +29,12 @@ export async function serveFolder({
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: unparseable URL: ${JSON.stringify(clientRequest.pathRaw)}`,
-        headers
+        headers,
       );
     }
     return;
@@ -49,12 +49,12 @@ export async function serveFolder({
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: method ${JSON.stringify(clientRequest.headers[':method'])} unknown`,
-        headers
+        headers,
       );
     }
     return;
@@ -83,12 +83,12 @@ export async function serveFolder({
     if (clientRequest.headers[':method'] == 'HEAD') {
       clientRequest.respond(
         '',
-        headers
+        headers,
       );
     } else {
       clientRequest.respond(
         `Error: path ${JSON.stringify(processedPath)} leaves containing folder`,
-        headers
+        headers,
       );
     }
     return;
