@@ -52,7 +52,9 @@ function mimeTypeIsText(mimeType) {
 export async function serveFile({
   clientRequest,
   fsPath,
+  serve400 = null,
   serve404 = null,
+  serve416 = null,
   serve500 = null,
   errorReceiver = console.error,
 }) {
@@ -71,7 +73,7 @@ export async function serveFile({
     }
     
     if ('range' in clientRequest.headers) {
-      const match = /^(\w+)=((?:\d*-\d*, )\d*-\d*)$/.exec(clientRequest.headers.range);
+      const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(clientRequest.headers.range);
       
       if (match == null) {
         serveFile_send400({
@@ -104,6 +106,16 @@ export async function serveFile({
               end: endString != '' ? parseInt(endString) : null,
             };
           });
+      
+      if (ranges.length > 1) {
+        // reject multipart range requests for now
+        serveFile_send416({
+          clientRequest,
+          processedPath,
+          serve416,
+        });
+        return;
+      }
       
       for (const { start, end } of ranges) {
         if (start == null && end == null) {
@@ -211,6 +223,31 @@ export async function serveFile({
   }
 }
 
+export function serveFile_send404({ clientRequest, processedPath, serve400 }) {
+  if (serve400 != null) {
+    serve400({
+      clientRequest,
+    });
+  } else {
+    const headers = {
+      ':status': 400,
+      'content-type': 'text/plain; charset=utf-8',
+    };
+    
+    if (clientRequest.headers[':method'] == 'HEAD') {
+      clientRequest.respond(
+        '',
+        headers
+      );
+    } else {
+      clientRequest.respond(
+        `Error: file ${JSON.stringify(processedPath)}, range ${JSON.stringify(clientRequest.headers.range)} invalid`,
+        headers
+      );
+    }
+  }
+}
+
 export function serveFile_send404({ clientRequest, processedPath, serve404 }) {
   if (serve404 != null) {
     serve404({
@@ -230,6 +267,30 @@ export function serveFile_send404({ clientRequest, processedPath, serve404 }) {
     } else {
       clientRequest.respond(
         `Error: file ${JSON.stringify(processedPath)} not found`,
+        headers
+      );
+    }
+  }
+}
+export function serveFile_send416({ clientRequest, processedPath, serve416 }) {
+  if (serve416 != null) {
+    serve416({
+      clientRequest,
+    });
+  } else {
+    const headers = {
+      ':status': 416,
+      'content-type': 'text/plain; charset=utf-8',
+    };
+    
+    if (clientRequest.headers[':method'] == 'HEAD') {
+      clientRequest.respond(
+        '',
+        headers
+      );
+    } else {
+      clientRequest.respond(
+        `Error: file ${JSON.stringify(processedPath)}, range ${JSON.stringify(clientRequest.headers.range)} not satisfyable`,
         headers
       );
     }

@@ -13,7 +13,9 @@ import {
 export async function serveFolder({
   clientRequest,
   fsPathPrefix,
+  serve400 = null,
   serve404 = null,
+  serve416 = null,
   serve500 = null,
   pathFilter = null,
   errorReceiver = console.error,
@@ -106,7 +108,9 @@ export async function serveFolder({
   await serveFile({
     clientRequest,
     fsPath: resultFsPath,
+    serve400,
     serve404,
+    serve416,
     serve500,
     errorReceiver,
   });
