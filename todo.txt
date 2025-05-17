@@ -1,6 +1,4 @@
 proxy support
-servefs:
-  custom fs func support for serve file
 http3 support
 
 low prio:

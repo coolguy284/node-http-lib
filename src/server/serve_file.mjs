@@ -108,11 +108,19 @@ export async function serveFile({
   serve416 = null,
   serve500 = null,
   errorReceiver = console.error,
+  // accepts optional { start, end } parameters, implements stream.Readable
+  fsCreateReadStream = createReadStream,
+  // implements: isFile, size, mtimeMs
+  fsPromisesStat = stat,
+  // implements:
+  // createReadStream (accepts parameters: start, end, autoClose: true, returns stream.Readable),
+  // Symbol.asyncDispose
+  fsPromisesOpen = open,
 }) {
   const processedPath = getProcessedPath(clientRequest.path);
   
   try {
-    const stats = await stat(fsPath);
+    const stats = await fsPromisesStat(fsPath);
     
     if (!stats.isFile()) {
       await serveFile_send404({
@@ -354,7 +362,7 @@ export async function serveFile({
             headers,
           );
         } else {
-          const fd = await open(fsPath);
+          const fd = await fsPromisesOpen(fsPath);
           
           try {
             let multiStreamSegments = [];
@@ -413,7 +421,7 @@ export async function serveFile({
             headers,
           );
         } else {
-          const fileStream = createReadStream(fsPath, { start, end });
+          const fileStream = fsCreateReadStream(fsPath, { start, end });
           await awaitFileStreamReady(fileStream);
           
           clientRequest.respond(
@@ -446,7 +454,7 @@ export async function serveFile({
           headers,
         );
       } else {
-        const fileStream = createReadStream(fsPath);
+        const fileStream = fsCreateReadStream(fsPath);
         await awaitFileStreamReady(fileStream);
         
         clientRequest.respond(

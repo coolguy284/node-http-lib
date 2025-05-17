@@ -1,3 +1,8 @@
+import { createReadStream } from 'node:fs';
+import {
+  open,
+  stat,
+} from 'node:fs/promises';
 import {
   join,
   sep,
@@ -31,6 +36,14 @@ export async function serveFolder({
   serve500 = null,
   pathFilter = null,
   errorReceiver = console.error,
+  // accepts optional { start, end } parameters, implements stream.Readable
+  fsCreateReadStream = createReadStream,
+  // implements: isFile, size, mtimeMs
+  fsPromisesStat = stat,
+  // implements:
+  // createReadStream (accepts parameters: start, end, autoClose: true, returns stream.Readable),
+  // Symbol.asyncDispose
+  fsPromisesOpen = open,
 }) {
   if (clientRequest.path == null) {
     await serveFile_send400_badURL({
@@ -93,5 +106,8 @@ export async function serveFolder({
     serve416,
     serve500,
     errorReceiver,
+    fsCreateReadStream,
+    fsPromisesStat,
+    fsPromisesOpen,
   });
 }
