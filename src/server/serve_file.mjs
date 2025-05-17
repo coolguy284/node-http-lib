@@ -92,10 +92,15 @@ function getRangeBoundsFromObject({ start, end, size }) {
   return [processedStart, processedEnd];
 }
 
+function unixSecsToString(unixSecs) {
+  return new Date(unixSecs * 1000).toUTCString();
+}
+
 export async function serveFile({
   clientRequest,
   fsPath,
   includeLastModified = true,
+  // integer seconds since unix epoch
   lastModifiedOverride = null,
   etag = null,
   serve400 = null,
@@ -140,6 +145,16 @@ export async function serveFile({
             'accept-ranges': 'bytes',
             'content-type': contentType,
             'content-length': stats.size,
+            ...(etag != null ? { 'etag': etag } : {}),
+            ...(
+              includeLastModified ?
+              {
+                'last-modified': unixSecsToString(
+                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                ),
+              } :
+              {}
+            ),
           },
         );
         return;
@@ -168,6 +183,16 @@ export async function serveFile({
             'accept-ranges': 'bytes',
             'content-type': contentType,
             'content-length': stats.size,
+            ...(etag != null ? { 'etag': etag } : {}),
+            ...(
+              includeLastModified ?
+              {
+                'last-modified': unixSecsToString(
+                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                ),
+              } :
+              {}
+            ),
           },
         );
         return;
@@ -312,6 +337,15 @@ export async function serveFile({
           'accept-ranges': 'bytes',
           'content-type': `multipart/byteranges; boundary=${boundary}`,
           'content-length': '' + contentLength,
+          ...(
+            includeLastModified ?
+            {
+              'last-modified': unixSecsToString(
+                lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+              ),
+            } :
+            {}
+          ),
         };
         
         if (clientRequest.headers[':method'] == 'HEAD') {
@@ -362,6 +396,15 @@ export async function serveFile({
           'content-range': `bytes ${start}-${end}/${stats.size}`,
           'content-type': contentType,
           'content-length': '' + (end - start + 1),
+          ...(
+            includeLastModified ?
+            {
+              'last-modified': unixSecsToString(
+                lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+              ),
+            } :
+            {}
+          ),
         };
         
         if (clientRequest.headers[':method'] == 'HEAD') {
@@ -385,6 +428,16 @@ export async function serveFile({
         'accept-ranges': 'bytes',
         'content-type': contentType,
         'content-length': stats.size,
+        ...(etag != null ? { 'etag': etag } : {}),
+        ...(
+          includeLastModified ?
+          {
+            'last-modified': unixSecsToString(
+              lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+            ),
+          } :
+          {}
+        ),
       };
       
       if (clientRequest.headers[':method'] == 'HEAD') {

@@ -19,7 +19,9 @@ export async function serveFolder({
   clientRequest,
   fsPathPrefix,
   includeLastModified = true,
+  // returns integer seconds since unix epoch for a given true filepath
   lastModifiedOverrideFunc = null,
+  // returns etag for a given true filepath
   etagFunc = null,
   serve400 = null,
   serve403 = null,

@@ -1,7 +1,5 @@
 proxy support
 servefs:
-  etag & last modified
-  support for last modified or etag overrides
   custom fs func support for serve file
 http3 support
 
