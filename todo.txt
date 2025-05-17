@@ -1,9 +1,10 @@
 proxy support
 servefs:
-  last modified, if-range support
+  etag & last modified
   support for last modified or etag overrides
   custom fs func support for serve file
 http3 support
 
 low prio:
 servefs compression if file / file chunk above 256 bytes threshold, configurable
+if-range support

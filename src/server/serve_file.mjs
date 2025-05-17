@@ -96,8 +96,8 @@ export async function serveFile({
   clientRequest,
   fsPath,
   includeLastModified = true,
-  lastModifiedOverrides = null,
-  etags = null,
+  lastModifiedOverride = null,
+  etag = null,
   serve400 = null,
   serve404 = null,
   serve416 = null,
@@ -116,6 +116,62 @@ export async function serveFile({
         serve404,
       });
       return;
+    }
+    
+    if ('if-none-match' in clientRequest.headers) {
+      const match = /^"(.*)"$/.exec(clientRequest.headers['if-none-match']);
+      
+      if (match == null) {
+        await serveFile_send400_generic({
+          clientRequest,
+          processedPath,
+          serve400,
+        });
+        return;
+      }
+      
+      const requestEtag = match[1];
+      
+      if (requestEtag == etag) {
+        clientRequest.respond(
+          '',
+          {
+            ':status': 304,
+            'accept-ranges': 'bytes',
+            'content-type': contentType,
+            'content-length': stats.size,
+          },
+        );
+        return;
+      }
+    }
+    
+    if (includeLastModified && 'if-modified-since' in clientRequest.headers) {
+      if (!/^(?:Sun|Mon|Tue|Wed|Thur|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(clientRequest.headers['if-modified-since'])) {
+        await serveFile_send400_generic({
+          clientRequest,
+          processedPath,
+          serve400,
+        });
+        return;
+      }
+      
+      const requestLastModifiedSecs = Math.floor(new Date(clientRequest.headers['if-modified-since']).getTime() / 1000);
+      
+      const fileLastModifiedSecs = Math.floor(stats.mtimeMs / 1000);
+      
+      if (requestLastModifiedSecs == fileLastModifiedSecs) {
+        clientRequest.respond(
+          '',
+          {
+            ':status': 304,
+            'accept-ranges': 'bytes',
+            'content-type': contentType,
+            'content-length': stats.size,
+          },
+        );
+        return;
+      }
     }
     
     let ranges;
