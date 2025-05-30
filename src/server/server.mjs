@@ -322,6 +322,7 @@ export class Server {
     port,
     tlsServers,
     server,
+    instance,
   }) {
     const ipPortKey = `[${ip}]:${port}`;
     
@@ -504,6 +505,7 @@ export class Server {
             port,
             tlsServers,
             server,
+            instance,
           });
           break;
         }
@@ -541,6 +543,7 @@ export class Server {
             port,
             tlsServers,
             server,
+            instance,
           });
           break;
         }
