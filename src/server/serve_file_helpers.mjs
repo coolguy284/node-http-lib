@@ -7,7 +7,7 @@ function serveFile_sendInternal({ clientRequest, statusCode, errorMsg, additiona
   
   if (clientRequest.headers[':method'] == 'HEAD') {
     clientRequest.respond(
-      '',
+      null,
       headers,
     );
   } else {

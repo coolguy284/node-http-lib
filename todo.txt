@@ -4,3 +4,4 @@ http3 support
 low prio:
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
+rework http1 server.mjs handlers to properly end more efficiently if data == null on respond function call

@@ -161,7 +161,7 @@ export async function serveFile({
       
       if (requestEtag == etag) {
         clientRequest.respond(
-          '',
+          null,
           {
             ':status': 304,
             'accept-ranges': 'bytes',
@@ -201,7 +201,7 @@ export async function serveFile({
       
       if (requestLastModifiedSecs == fileLastModifiedSecs) {
         clientRequest.respond(
-          '',
+          null,
           {
             ':status': 304,
             'accept-ranges': 'bytes',
@@ -373,7 +373,7 @@ export async function serveFile({
         
         if (clientRequest.headers[':method'] == 'HEAD') {
           clientRequest.respond(
-            '',
+            null,
             headers,
           );
         } else {
@@ -433,7 +433,7 @@ export async function serveFile({
         
         if (clientRequest.headers[':method'] == 'HEAD') {
           clientRequest.respond(
-            '',
+            null,
             headers,
           );
         } else {
@@ -467,7 +467,7 @@ export async function serveFile({
       
       if (clientRequest.headers[':method'] == 'HEAD') {
         clientRequest.respond(
-          '',
+          null,
           headers,
         );
       } else {
