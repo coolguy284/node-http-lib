@@ -34,6 +34,8 @@ export const TLS_CONFIG_NORMAL = {
     '!TLS_RSA_WITH_AES_128_CBC_SHA',
     '@STRENGTH',
   ].join(':'),
+  
+  sessionResumptionWithID: true,
 };
 
 export const TLS_CONFIG_MORE_SECURE = {
@@ -55,6 +57,8 @@ export const TLS_CONFIG_MORE_SECURE = {
     'TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256',
     '@STRENGTH',
   ].join(':'),
+  
+  sessionResumptionWithID: true,
 };
 
 export const TLS_CONFIG_MORE_SECURE_2 = {
@@ -77,4 +81,6 @@ export const TLS_CONFIG_MORE_SECURE_2 = {
     '@STRENGTH',
     '@SECLEVEL=5',
   ].join(':'),
+  
+  sessionResumptionWithID: true,
 };

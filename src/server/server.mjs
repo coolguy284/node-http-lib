@@ -326,6 +326,10 @@ export class Server {
         ip: string<ip address>,
         port: integer<port, 0 - 65535>,
         options: Object, (options passed to server constructor)
+          additional tls options:
+            sessionResumptionWithID: boolean
+            sessionResumptionWithIDMaxEntries: number, default 1e6,
+            sessionResumptionWithIDCacheTime: number, default 3_600_000,
       },
       ...
     ]
@@ -421,6 +425,34 @@ export class Server {
                 firstInstance.server.emit('secureConnection', tlsSocket);
               }
             });
+            
+            if ('sessionResumptionWithID' in firstInstance.options) {
+              const cachedSessionIDs = firstInstance.cachedSessionIDs = new Map();
+              
+              tlsServer.on('newSession', (sessionID, sessionData, cb) => {
+                const sessionIDString = sessionID.toString('base64');
+                
+                cachedSessionIDs.set(sessionIDString, {
+                  lastUpdatedAt: Date.now(),
+                  sessionData,
+                });
+                cb();
+              });
+              
+              tlsServer.on('resumeSession', (sessionID, cb) => {
+                const sessionIDString = sessionID.toString('base64');
+                
+                if (cachedSessionIDs.has(sessionIDString)) {
+                  let sessionCacheEntry = cachedSessionIDs.get(sessionIDString);
+                  
+                  sessionCacheEntry.lastUpdatedAt = Date.now();
+                  
+                  cb(null, sessionCacheEntry.sessionData);
+                } else {
+                  cb(null, null);
+                }
+              });
+            }
             
             firstInstance.otherServer = server;
           } else {
