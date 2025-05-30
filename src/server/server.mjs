@@ -317,6 +317,120 @@ export class Server {
     });
   }
   
+  #createTLSServer({
+    ip,
+    port,
+    tlsServers,
+    server,
+  }) {
+    const ipPortKey = `[${ip}]:${port}`;
+    
+    if (tlsServers.has(ipPortKey)) {
+      let { firstInstance } = tlsServers.get(ipPortKey);
+      
+      firstInstance.hasTlsComponent = true;
+      firstInstance.firstInTlsComponent = true;
+      instance.hasTlsComponent = true;
+      instance.firstInTlsComponent = false;
+      
+      const tlsServer = firstInstance.tlsServer = createTLSServer({
+        ...firstInstance.options,
+        ALPNProtocols: ['h2', 'http/1.1'],
+      });
+      
+      const tlsServerConnections = firstInstance.tlsServerConnections = new Set();
+      
+      tlsServer.on('connection', socket => {
+        if (!socket.destroyed) {
+          tlsServerConnections.add(socket);
+          
+          socket.on('close', () => {
+            tlsServerConnections.delete(socket);
+          })
+        }
+      });
+      
+      tlsServer.on('secureConnection', tlsSocket => {
+        if (tlsSocket.destroyed) {
+          return;
+        }
+        
+        tlsSocket.setNoDelay(true);
+        
+        if (tlsSocket.alpnProtocol == false || tlsSocket.alpnProtocol == 'http/1.1') {
+          server.emit('secureConnection', tlsSocket);
+        } else {
+          firstInstance.server.emit('secureConnection', tlsSocket);
+        }
+      });
+      
+      if ('sessionResumptionWithID' in firstInstance.options) {
+        const cachedSessionIDs = firstInstance.cachedSessionIDs = new Map();
+        const maxCachedEntries = firstInstance.options.sessionResumptionWithIDMaxEntries ?? 1e6;
+        const maxCacheTime = firstInstance.options.sessionResumptionWithIDCacheTime ?? 3_600_000;
+        
+        tlsServer.on('newSession', (sessionID, sessionData, cb) => {
+          const sessionIDString = sessionID.toString('base64');
+          
+          cachedSessionIDs.set(sessionIDString, {
+            lastUpdatedAt: Date.now(),
+            sessionData,
+          });
+          
+          if (cachedSessionIDs.size > maxCachedEntries) {
+            const { sessionIDString, done } = cachedSessionIDs.keys().next();
+            
+            if (!done) {
+              cachedSessionIDs.delete(sessionIDString);
+            }
+          }
+          
+          cb();
+          
+          if (firstInstance.cachedSessionTimeout == null) {
+            const timeoutCallback = () => {
+              const deleteBeforeThreshold = Date.now() - maxCacheTime;
+              
+              for (const [ sessionIDString, { lastUpdatedAt } ] of cachedSessionIDs) {
+                if (lastUpdatedAt <= deleteBeforeThreshold) {
+                  cachedSessionIDs.delete(sessionIDString);
+                }
+              }
+              
+              if (cachedSessionIDs.size > 0) {
+                firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
+              } else {
+                firstInstance.cachedSessionTimeout = null;
+              }
+            };
+            
+            firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
+          }
+        });
+        
+        tlsServer.on('resumeSession', (sessionID, cb) => {
+          const sessionIDString = sessionID.toString('base64');
+          
+          if (cachedSessionIDs.has(sessionIDString)) {
+            let sessionCacheEntry = cachedSessionIDs.get(sessionIDString);
+            
+            sessionCacheEntry.lastUpdatedAt = Date.now();
+            
+            cb(null, sessionCacheEntry.sessionData);
+          } else {
+            cb(null, null);
+          }
+        });
+      }
+      
+      firstInstance.otherServer = server;
+    } else {
+      tlsServers.set(ipPortKey, {
+        firstInstance: instance,
+      });
+    }
+  }
+  
   /*
     instances:
     [
@@ -385,112 +499,12 @@ export class Server {
             secure: true,
           });
           
-          const ipPortKey = `[${ip}]:${port}`;
-          
-          if (tlsServers.has(ipPortKey)) {
-            let { firstInstance } = tlsServers.get(ipPortKey);
-            
-            firstInstance.hasTlsComponent = true;
-            firstInstance.firstInTlsComponent = true;
-            instance.hasTlsComponent = true;
-            instance.firstInTlsComponent = false;
-            
-            const tlsServer = firstInstance.tlsServer = createTLSServer({
-              ...firstInstance.options,
-              ALPNProtocols: ['h2', 'http/1.1'],
-            });
-            
-            const tlsServerConnections = firstInstance.tlsServerConnections = new Set();
-            
-            tlsServer.on('connection', socket => {
-              if (!socket.destroyed) {
-                tlsServerConnections.add(socket);
-                
-                socket.on('close', () => {
-                  tlsServerConnections.delete(socket);
-                })
-              }
-            });
-            
-            tlsServer.on('secureConnection', tlsSocket => {
-              if (tlsSocket.destroyed) {
-                return;
-              }
-              
-              tlsSocket.setNoDelay(true);
-              
-              if (tlsSocket.alpnProtocol == false || tlsSocket.alpnProtocol == 'http/1.1') {
-                server.emit('secureConnection', tlsSocket);
-              } else {
-                firstInstance.server.emit('secureConnection', tlsSocket);
-              }
-            });
-            
-            if ('sessionResumptionWithID' in firstInstance.options) {
-              const cachedSessionIDs = firstInstance.cachedSessionIDs = new Map();
-              const maxCachedEntries = firstInstance.options.sessionResumptionWithIDMaxEntries ?? 1e6;
-              const maxCacheTime = firstInstance.options.sessionResumptionWithIDCacheTime ?? 3_600_000;
-              
-              tlsServer.on('newSession', (sessionID, sessionData, cb) => {
-                const sessionIDString = sessionID.toString('base64');
-                
-                cachedSessionIDs.set(sessionIDString, {
-                  lastUpdatedAt: Date.now(),
-                  sessionData,
-                });
-                
-                if (cachedSessionIDs.size > maxCachedEntries) {
-                  const { sessionIDString, done } = cachedSessionIDs.keys().next();
-                  
-                  if (!done) {
-                    cachedSessionIDs.delete(sessionIDString);
-                  }
-                }
-                
-                cb();
-                
-                if (firstInstance.cachedSessionTimeout == null) {
-                  const timeoutCallback = () => {
-                    const deleteBeforeThreshold = Date.now() - maxCacheTime;
-                    
-                    for (const [ sessionIDString, { lastUpdatedAt } ] of cachedSessionIDs) {
-                      if (lastUpdatedAt <= deleteBeforeThreshold) {
-                        cachedSessionIDs.delete(sessionIDString);
-                      }
-                    }
-                    
-                    if (cachedSessionIDs.size > 0) {
-                      firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
-                    } else {
-                      firstInstance.cachedSessionTimeout = null;
-                    }
-                  };
-                  
-                  firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
-                }
-              });
-              
-              tlsServer.on('resumeSession', (sessionID, cb) => {
-                const sessionIDString = sessionID.toString('base64');
-                
-                if (cachedSessionIDs.has(sessionIDString)) {
-                  let sessionCacheEntry = cachedSessionIDs.get(sessionIDString);
-                  
-                  sessionCacheEntry.lastUpdatedAt = Date.now();
-                  
-                  cb(null, sessionCacheEntry.sessionData);
-                } else {
-                  cb(null, null);
-                }
-              });
-            }
-            
-            firstInstance.otherServer = server;
-          } else {
-            tlsServers.set(ipPortKey, {
-              firstInstance: instance,
-            });
-          }
+          this.#createTLSServer({
+            ip,
+            port,
+            tlsServers,
+            server,
+          });
           break;
         }
         
@@ -522,38 +536,12 @@ export class Server {
             });
           });
           
-          const ipPortKey = `[${ip}]:${port}`;if (tlsServers.has(ipPortKey)) {
-            let { firstInstance } = tlsServers.get(ipPortKey);
-            
-            firstInstance.hasTlsComponent = true;
-            firstInstance.firstInTlsComponent = true;
-            instance.hasTlsComponent = true;
-            instance.firstInTlsComponent = false;
-            const tlsServer = firstInstance.tlsServer = createTLSServer({
-              ...firstInstance.options,
-              ALPNProtocols: ['h2', 'http/1.1'],
-            });
-            
-            tlsServer.on('secureConnection', socket => {
-              if (socket.destroyed) {
-                return;
-              }
-              
-              socket.setNoDelay(true);
-              
-              if (socket.alpnProtocol == false || socket.alpnProtocol == 'http/1.1') {
-                firstInstance.server.emit('secureConnection', socket);
-              } else {
-                server.emit('secureConnection', socket);
-              }
-            });
-            
-            firstInstance.otherServer = server;
-          } else {
-            tlsServers.set(ipPortKey, {
-              firstInstance: instance,
-            });
-          }
+          this.#createTLSServer({
+            ip,
+            port,
+            tlsServers,
+            server,
+          });
           break;
         }
       }
