@@ -28,6 +28,7 @@ export async function serveFolder({
   lastModifiedOverrideFunc = null,
   // returns etag for a given true filepath
   etagFunc = null,
+  additionalHeaders = {},
   serve400 = null,
   serve403 = null,
   serve404 = null,
@@ -101,6 +102,7 @@ export async function serveFolder({
     includeLastModified,
     lastModifiedOverride: includeLastModified ? lastModifiedOverrideFunc?.(resultFsPath) : null,
     etag: etagFunc?.(resultFsPath),
+    additionalHeaders,
     serve400,
     serve404,
     serve416,

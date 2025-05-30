@@ -103,6 +103,7 @@ export async function serveFile({
   // integer seconds since unix epoch
   lastModifiedOverride = null,
   etag = null,
+  additionalHeaders = {},
   serve400 = null,
   serve404 = null,
   serve416 = null,
@@ -127,6 +128,7 @@ export async function serveFile({
         clientRequest,
         processedPath,
         serve404,
+        additionalHeaders,
       });
       return;
     }
@@ -139,6 +141,7 @@ export async function serveFile({
           clientRequest,
           processedPath,
           serve400,
+          additionalHeaders,
         });
         return;
       }
@@ -163,6 +166,7 @@ export async function serveFile({
               } :
               {}
             ),
+            ...additionalHeaders,
           },
         );
         return;
@@ -175,6 +179,7 @@ export async function serveFile({
           clientRequest,
           processedPath,
           serve400,
+          additionalHeaders,
         });
         return;
       }
@@ -201,6 +206,7 @@ export async function serveFile({
               } :
               {}
             ),
+            ...additionalHeaders,
           },
         );
         return;
@@ -217,6 +223,7 @@ export async function serveFile({
           clientRequest,
           processedPath,
           serve400,
+          additionalHeaders,
         });
         return;
       }
@@ -228,6 +235,7 @@ export async function serveFile({
           clientRequest,
           processedPath,
           serve400,
+          additionalHeaders,
         });
         return;
       }
@@ -250,6 +258,7 @@ export async function serveFile({
           clientRequest,
           processedPath,
           serve416,
+          additionalHeaders,
         });
         return;
       }
@@ -261,6 +270,7 @@ export async function serveFile({
             clientRequest,
             processedPath,
             serve400,
+            additionalHeaders,
           });
           return;
         } else if (start == null && end != null) {
@@ -270,6 +280,7 @@ export async function serveFile({
               clientRequest,
               processedPath,
               serve416,
+              additionalHeaders,
             });
             return;
           }
@@ -280,6 +291,7 @@ export async function serveFile({
               clientRequest,
               processedPath,
               serve416,
+              additionalHeaders,
             });
             return;
           }
@@ -290,6 +302,7 @@ export async function serveFile({
               clientRequest,
               processedPath,
               serve416,
+              additionalHeaders,
             });
             return;
           }
@@ -300,6 +313,7 @@ export async function serveFile({
               clientRequest,
               processedPath,
               serve416,
+              additionalHeaders,
             });
             return;
           }
@@ -354,6 +368,7 @@ export async function serveFile({
             } :
             {}
           ),
+          ...additionalHeaders,
         };
         
         if (clientRequest.headers[':method'] == 'HEAD') {
@@ -413,6 +428,7 @@ export async function serveFile({
             } :
             {}
           ),
+          ...additionalHeaders,
         };
         
         if (clientRequest.headers[':method'] == 'HEAD') {
@@ -446,6 +462,7 @@ export async function serveFile({
           } :
           {}
         ),
+        ...additionalHeaders,
       };
       
       if (clientRequest.headers[':method'] == 'HEAD') {
@@ -469,6 +486,7 @@ export async function serveFile({
         clientRequest,
         processedPath,
         serve404,
+        additionalHeaders,
       });
     } else {
       if (errorReceiver != null) {
@@ -479,6 +497,7 @@ export async function serveFile({
         clientRequest,
         processedPath,
         serve500,
+        additionalHeaders,
       });
     }
   }
