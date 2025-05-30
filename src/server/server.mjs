@@ -87,6 +87,10 @@ export class Server {
           );
         }
         
+        if (data == null) {
+          data = '';
+        }
+        
         res.writeHead(status, headers);
         
         if (data instanceof Readable) {
@@ -139,6 +143,10 @@ export class Server {
             Object.entries(headers)
               .filter(([ key, _ ]) => key != ':status')
           );
+        }
+        
+        if (data == null) {
+          data = '';
         }
         
         socket.write(
@@ -200,6 +208,10 @@ export class Server {
           );
         }
         
+        if (data == null) {
+          data = '';
+        }
+        
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
           Object.entries(headers)
@@ -251,12 +263,16 @@ export class Server {
           };
         }
         
-        stream.respond(headers);
-        
-        if (data instanceof Readable) {
-          data.pipe(stream);
+        if (data == null) {
+          stream.respond(headers, { endStream: true });
         } else {
-          stream.end(data);
+          stream.respond(headers, { endStream: false });
+          
+          if (data instanceof Readable) {
+            data.pipe(stream);
+          } else {
+            stream.end(data);
+          }
         }
       },
     }));
