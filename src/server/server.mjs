@@ -347,7 +347,7 @@ export class Server {
           
           socket.on('close', () => {
             tlsServerConnections.delete(socket);
-          })
+          });
         }
       });
       
