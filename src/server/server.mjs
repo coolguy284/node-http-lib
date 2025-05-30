@@ -323,6 +323,7 @@ export class Server {
     tlsServers,
     server,
     instance,
+    serverIsHttp2,
   }) {
     const ipPortKey = `[${ip}]:${port}`;
     
@@ -359,9 +360,19 @@ export class Server {
         tlsSocket.setNoDelay(true);
         
         if (tlsSocket.alpnProtocol == false || tlsSocket.alpnProtocol == 'http/1.1') {
-          server.emit('secureConnection', tlsSocket);
+          // http/1.1
+          if (serverIsHttp2) {
+            firstInstance.server.emit('secureConnection', tlsSocket);
+          } else {
+            server.emit('secureConnection', tlsSocket);
+          }
         } else {
-          firstInstance.server.emit('secureConnection', tlsSocket);
+          // http/2
+          if (serverIsHttp2) {
+            server.emit('secureConnection', tlsSocket);
+          } else {
+            firstInstance.server.emit('secureConnection', tlsSocket);
+          }
         }
       });
       
@@ -506,6 +517,7 @@ export class Server {
             tlsServers,
             server,
             instance,
+            serverIsHttp2: false,
           });
           break;
         }
@@ -544,6 +556,7 @@ export class Server {
             tlsServers,
             server,
             instance,
+            serverIsHttp2: true,
           });
           break;
         }
