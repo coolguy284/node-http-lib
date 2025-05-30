@@ -133,6 +133,17 @@ export async function serveFile({
       return;
     }
     
+    const mimeType = mime.getType(processedPath);
+    
+    let contentType;
+    if (mimeType == null) {
+      contentType = 'application/octet-stream';
+    } else if (mimeTypeIsText(mimeType)) {
+      contentType = `${mimeType}; charset=utf-8`;
+    } else {
+      contentType = mimeType;
+    }
+    
     if ('if-none-match' in clientRequest.headers) {
       const match = /^"(.*)"$/.exec(clientRequest.headers['if-none-match']);
       
@@ -319,17 +330,6 @@ export async function serveFile({
           }
         }
       }
-    }
-    
-    const mimeType = mime.getType(processedPath);
-    
-    let contentType;
-    if (mimeType == null) {
-      contentType = 'application/octet-stream';
-    } else if (mimeTypeIsText(mimeType)) {
-      contentType = `${mimeType}; charset=utf-8`;
-    } else {
-      contentType = mimeType;
     }
     
     if ('range' in clientRequest.headers) {
