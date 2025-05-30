@@ -268,6 +268,14 @@ export class Server {
         } else {
           stream.respond(headers, { endStream: false });
           
+          if (!stream.writable) {
+            if (!(data instanceof Readable) && data.length == 0) {
+              return;
+            } else {
+              throw new Error('stream.respond automatically ended stream (despite being told not to) and nonzero length data was given');
+            }
+          }
+          
           if (data instanceof Readable) {
             data.pipe(stream);
           } else {
