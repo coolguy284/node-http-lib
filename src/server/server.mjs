@@ -436,7 +436,22 @@ export class Server {
                   lastUpdatedAt: Date.now(),
                   sessionData,
                 });
+                
+                if (cachedSessionIDs.size > (firstInstance.options.sessionResumptionWithIDMaxEntries ?? 1e6)) {
+                  const { sessionIDString, done } = cachedSessionIDs.keys().next();
+                  
+                  if (!done) {
+                    cachedSessionIDs.delete(sessionIDString);
+                  }
+                }
+                
                 cb();
+                
+                if (firstInstance.cachedSessionTimeout == null) {
+                  firstInstance.cachedSessionTimeout = setTimeout(() => {
+                    
+                  }, firstInstance.options.sessionResumptionWithIDCacheTime ?? 3_600_000);
+                }
               });
               
               tlsServer.on('resumeSession', (sessionID, cb) => {
