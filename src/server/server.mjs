@@ -428,6 +428,8 @@ export class Server {
             
             if ('sessionResumptionWithID' in firstInstance.options) {
               const cachedSessionIDs = firstInstance.cachedSessionIDs = new Map();
+              const maxCachedEntries = firstInstance.options.sessionResumptionWithIDMaxEntries ?? 1e6;
+              const maxCacheTime = firstInstance.options.sessionResumptionWithIDCacheTime ?? 3_600_000;
               
               tlsServer.on('newSession', (sessionID, sessionData, cb) => {
                 const sessionIDString = sessionID.toString('base64');
@@ -437,7 +439,7 @@ export class Server {
                   sessionData,
                 });
                 
-                if (cachedSessionIDs.size > (firstInstance.options.sessionResumptionWithIDMaxEntries ?? 1e6)) {
+                if (cachedSessionIDs.size > maxCachedEntries) {
                   const { sessionIDString, done } = cachedSessionIDs.keys().next();
                   
                   if (!done) {
@@ -448,9 +450,23 @@ export class Server {
                 cb();
                 
                 if (firstInstance.cachedSessionTimeout == null) {
-                  firstInstance.cachedSessionTimeout = setTimeout(() => {
+                  const timeoutCallback = () => {
+                    const deleteBeforeThreshold = Date.now() - maxCacheTime;
                     
-                  }, firstInstance.options.sessionResumptionWithIDCacheTime ?? 3_600_000);
+                    for (const [ sessionIDString, { lastUpdatedAt } ] of cachedSessionIDs) {
+                      if (lastUpdatedAt <= deleteBeforeThreshold) {
+                        cachedSessionIDs.delete(sessionIDString);
+                      }
+                    }
+                    
+                    if (cachedSessionIDs.size > 0) {
+                      firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
+                    } else {
+                      firstInstance.cachedSessionTimeout = null;
+                    }
+                  };
+                  
+                  firstInstance.cachedSessionTimeout = setTimeout(timeoutCallback, maxCacheTime).unref();
                 }
               });
               
