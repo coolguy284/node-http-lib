@@ -38,7 +38,7 @@ export const TLS_CONFIG_NORMAL = {
   sessionResumptionWithID: true,
 };
 
-export const TLS_CONFIG_MORE_SECURE = {
+export const TLS_CONFIG_MORE_SECURE_1 = {
   secureOptions:
     constants.SSL_OP_NO_SSLv2 |
     constants.SSL_OP_NO_SSLv3 |
@@ -72,14 +72,11 @@ export const TLS_CONFIG_MORE_SECURE_2 = {
   ciphers: [
     'TLS_AES_256_GCM_SHA384',
     'TLS_CHACHA20_POLY1305_SHA256',
-    'TLS_AES_128_GCM_SHA256',
-    'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
     'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
     'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
     'TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384',
-    'TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256',
     '@STRENGTH',
-    '@SECLEVEL=5',
+    '@SECLEVEL=3',
   ].join(':'),
   
   sessionResumptionWithID: true,
