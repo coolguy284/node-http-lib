@@ -2,10 +2,10 @@ post-quantum tls support
 http3 support
 
 low prio:
+finish client support
 add docs to things & readme
 rename to node-http-lib
-test that server.destroy works
-client & proxy support
+test that server shutdown and destroy work
+serveProxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
-rework http1 server.mjs handlers to properly end more efficiently if data == null on respond function call

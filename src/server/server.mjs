@@ -90,16 +90,16 @@ export class Server {
           );
         }
         
-        if (data == null) {
-          data = '';
-        }
-        
         res.writeHead(status, headers);
         
-        if (data instanceof Readable) {
-          data.pipe(res);
+        if (data == null) {
+          res.end();
         } else {
-          res.end(data);
+          if (data instanceof Readable) {
+            data.pipe(res);
+          } else {
+            res.end(data);
+          }
         }
       },
     }));
@@ -149,10 +149,6 @@ export class Server {
           );
         }
         
-        if (data == null) {
-          data = '';
-        }
-        
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
           Object.entries(headers)
@@ -160,10 +156,14 @@ export class Server {
             .join('\r\n') + '\r\n\r\n'
         );
         
-        if (data instanceof Readable) {
-          data.pipe(socket);
+        if (data == null) {
+          socket.end();
         } else {
-          socket.end(data);
+          if (data instanceof Readable) {
+            data.pipe(socket);
+          } else {
+            socket.end(data);
+          }
         }
       },
     }));
@@ -213,10 +213,6 @@ export class Server {
           );
         }
         
-        if (data == null) {
-          data = '';
-        }
-        
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
           Object.entries(headers)
@@ -224,10 +220,14 @@ export class Server {
             .join('\r\n') + '\r\n\r\n'
         );
         
-        if (data instanceof Readable) {
-          data.pipe(socket);
+        if (data == null) {
+          socket.end();
         } else {
-          socket.end(data);
+          if (data instanceof Readable) {
+            data.pipe(socket);
+          } else {
+            socket.end(data);
+          }
         }
       },
     }));
