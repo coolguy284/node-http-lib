@@ -7,8 +7,8 @@ import { createSecureServer as createHTTP2Server } from 'node:http2';
 import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
-import { ServerRequest } from './client_request.mjs';
 import { multiStream } from '../lib/multi_stream.mjs';
+import { ServerRequest } from './server_request.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {
   let match;
