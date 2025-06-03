@@ -17,7 +17,7 @@ wsServer.on('connection', ws => {
   });
 });
 
-const server = new Server({
+using server = new Server({
   instances: INSTANCES,
   requestListener: async serverRequest => {
     console.log(
@@ -55,3 +55,9 @@ const server = new Server({
 await server.listen();
 
 console.log('Server active');
+
+await new Promise(r => {
+  process.once('SIGINT', () => r());
+});
+
+console.log('Server closing');
