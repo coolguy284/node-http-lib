@@ -1,4 +1,4 @@
-export class ClientRequest {
+export class ServerRequest {
   // http1 upgrades are treated as CONNECT requests using the extended connect
   // protocol, regardless of the true request method
   #respondFunc;
@@ -77,7 +77,7 @@ export class ClientRequest {
       }
     }
     
-    return new ClientRequest({
+    return new ServerRequest({
       listenerID,
       ipFamily,
       localAddress,
@@ -138,7 +138,7 @@ export class ClientRequest {
   }
   
   subRequest(pathStart) {
-    return new ClientRequest({
+    return new ServerRequest({
       listenerID: this.listenerID,
       path: this.path.slice(pathStart.length - 1),
       pathSearchParams: this.pathSearchParams,

@@ -1,31 +1,31 @@
-function serveFile_sendInternal({ clientRequest, statusCode, errorMsg, additionalHeaders }) {
+function serveFile_sendInternal({ serverRequest, statusCode, errorMsg, additionalHeaders }) {
   const headers = {
     ':status': statusCode,
     'content-type': 'text/plain; charset=utf-8',
     ...additionalHeaders,
   };
   
-  if (clientRequest.headers[':method'] == 'HEAD') {
-    clientRequest.respond(
+  if (serverRequest.headers[':method'] == 'HEAD') {
+    serverRequest.respond(
       null,
       headers,
     );
   } else {
-    clientRequest.respond(
+    serverRequest.respond(
       `Error: ${errorMsg}`,
       headers,
     );
   }
 }
 
-export async function serveFile_send400_generic({ clientRequest, processedPath, serve400, additionalHeaders }) {
+export async function serveFile_send400_generic({ serverRequest, processedPath, serve400, additionalHeaders }) {
   if (serve400 != null) {
     await serve400({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 400,
       errorMsg: `file ${JSON.stringify(processedPath)} request invalid`,
       additionalHeaders,
@@ -33,29 +33,29 @@ export async function serveFile_send400_generic({ clientRequest, processedPath, 
   }
 }
 
-export async function serveFile_send400_badURL({ clientRequest, serve400, additionalHeaders }) {
+export async function serveFile_send400_badURL({ serverRequest, serve400, additionalHeaders }) {
   if (serve400 != null) {
     await serve400({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 400,
-      errorMsg: `unparseable URL: ${JSON.stringify(clientRequest.pathRaw)}`,
+      errorMsg: `unparseable URL: ${JSON.stringify(serverRequest.pathRaw)}`,
       additionalHeaders,
     });
   }
 }
 
-export async function serveFile_send403({ clientRequest, processedPath, serve403, additionalHeaders }) {
+export async function serveFile_send403({ serverRequest, processedPath, serve403, additionalHeaders }) {
   if (serve403 != null) {
     await serve403({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 403,
       errorMsg: `path ${JSON.stringify(processedPath)} leaves containing folder`,
       additionalHeaders,
@@ -63,14 +63,14 @@ export async function serveFile_send403({ clientRequest, processedPath, serve403
   }
 }
 
-export async function serveFile_send404({ clientRequest, processedPath, serve404, additionalHeaders }) {
+export async function serveFile_send404({ serverRequest, processedPath, serve404, additionalHeaders }) {
   if (serve404 != null) {
     await serve404({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 404,
       errorMsg: `file ${JSON.stringify(processedPath)} not found`,
       additionalHeaders,
@@ -78,44 +78,44 @@ export async function serveFile_send404({ clientRequest, processedPath, serve404
   }
 }
 
-export async function serveFile_send405({ clientRequest, serve405, additionalHeaders }) {
+export async function serveFile_send405({ serverRequest, serve405, additionalHeaders }) {
   if (serve405 != null) {
     await serve405({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 405,
-      errorMsg: `method ${JSON.stringify(clientRequest.headers[':method'])} unknown`,
+      errorMsg: `method ${JSON.stringify(serverRequest.headers[':method'])} unknown`,
       additionalHeaders,
     });
   }
 }
 
-export async function serveFile_send416({ clientRequest, processedPath, serve416, additionalHeaders }) {
+export async function serveFile_send416({ serverRequest, processedPath, serve416, additionalHeaders }) {
   if (serve416 != null) {
     await serve416({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 416,
-      errorMsg: `file ${JSON.stringify(processedPath)}, range ${JSON.stringify(clientRequest.headers.range)} not satisfyable`,
+      errorMsg: `file ${JSON.stringify(processedPath)}, range ${JSON.stringify(serverRequest.headers.range)} not satisfyable`,
       additionalHeaders,
     });
   }
 }
 
-export async function serveFile_send500({ clientRequest, processedPath, serve500, additionalHeaders }) {
+export async function serveFile_send500({ serverRequest, processedPath, serve500, additionalHeaders }) {
   if (serve500 != null) {
     await serve500({
-      clientRequest,
+      serverRequest,
     });
   } else {
     serveFile_sendInternal({
-      clientRequest,
+      serverRequest,
       statusCode: 500,
       errorMsg: `an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
       additionalHeaders,

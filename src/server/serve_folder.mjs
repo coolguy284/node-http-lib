@@ -21,7 +21,7 @@ import {
 } from './serve_file_helpers.mjs';
 
 export async function serveFolder({
-  clientRequest,
+  serverRequest,
   fsPathPrefix,
   includeLastModified = true,
   // returns integer seconds since unix epoch for a given true filepath
@@ -46,39 +46,39 @@ export async function serveFolder({
   // Symbol.asyncDispose
   fsPromisesOpen = open,
 }) {
-  if (clientRequest.path == null) {
+  if (serverRequest.path == null) {
     await serveFile_send400_badURL({
-      clientRequest,
+      serverRequest,
       serve400,
     });
     return;
   }
   
-  if (clientRequest.headers[':method'] != 'GET' && clientRequest.headers[':method'] != 'HEAD') {
+  if (serverRequest.headers[':method'] != 'GET' && serverRequest.headers[':method'] != 'HEAD') {
     await serveFile_send405({
-      clientRequest,
+      serverRequest,
       serve405,
     });
     return;
   }
   
-  if (sep == '\\' && clientRequest.path.includes('\\')) {
+  if (sep == '\\' && serverRequest.path.includes('\\')) {
     // automatic 404 to simulate linux behavior of not having this path
     await serveFile_send404({
-      clientRequest,
+      serverRequest,
       processedPath,
       serve404,
     });
     return;
   }
   
-  const processedPath = getProcessedPath(clientRequest.path);
+  const processedPath = getProcessedPath(serverRequest.path);
   
   const pathLeavesBounds = relative('.', processedPath).split('/')[0] == '..';
   
   if (pathLeavesBounds) {
     await serveFile_send403({
-      clientRequest,
+      serverRequest,
       processedPath,
       serve403,
     });
@@ -87,7 +87,7 @@ export async function serveFolder({
   
   if (pathFilter != null && !pathFilter(processedPath)) {
     await serveFile_send404({
-      clientRequest,
+      serverRequest,
       processedPath,
       serve404,
     });
@@ -97,7 +97,7 @@ export async function serveFolder({
   const resultFsPath = join(fsPathPrefix, processedPath);
   
   await serveFile({
-    clientRequest,
+    serverRequest,
     fsPath: resultFsPath,
     includeLastModified,
     lastModifiedOverride: includeLastModified ? lastModifiedOverrideFunc?.(resultFsPath) : null,

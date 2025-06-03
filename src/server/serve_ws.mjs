@@ -3,9 +3,9 @@ import { duplexPair } from 'node:stream';
 // causes a 'connection' event to be emitted on wsServer
 // with parameters:
 // ws: WebSocket
-// clientRequest: ClientRequest
+// serverRequest: ServerRequest
 export function serveWebSocket({
-  clientRequest,
+  serverRequest,
   wsServer,
 }) {
   let [ serveWsEnd, handleUpgradeEnd ] = duplexPair();
@@ -26,25 +26,25 @@ export function serveWebSocket({
         })
     );
     
-    if (clientRequest.internal.mode == 'http1-upgrade') {
-      clientRequest.respond(
+    if (serverRequest.internal.mode == 'http1-upgrade') {
+      serverRequest.respond(
         serveWsEnd,
         {
           ...headers,
           ':status': 101,
         },
       );
-      clientRequest.streamReadable.pipe(serveWsEnd);
+      serverRequest.streamReadable.pipe(serveWsEnd);
     } else {
       delete headers['sec-websocket-accept'];
-      clientRequest.respond(
+      serverRequest.respond(
         serveWsEnd,
         {
           ...headers,
           ':status': 200,
         },
       );
-      clientRequest.streamReadable.pipe(serveWsEnd);
+      serverRequest.streamReadable.pipe(serveWsEnd);
     }
     
     delete handleUpgradeEnd.write;
@@ -70,7 +70,7 @@ export function serveWebSocket({
         })
     );
     
-    clientRequest.respond(
+    serverRequest.respond(
       body,
       {
         ...headers,
@@ -88,15 +88,15 @@ export function serveWebSocket({
     {
       method: 'GET',
       headers: {
-        ...clientRequest.headers,
+        ...serverRequest.headers,
         upgrade: 'websocket',
-        'sec-websocket-key': clientRequest.headers['sec-websocket-key'] ?? 'aaaaaaaaaaaaaaaaaaaaaa==',
+        'sec-websocket-key': serverRequest.headers['sec-websocket-key'] ?? 'aaaaaaaaaaaaaaaaaaaaaa==',
       },
     },
     handleUpgradeEnd,
     Buffer.alloc(0),
     ws => {
-      wsServer.emit('connection', ws, clientRequest);
+      wsServer.emit('connection', ws, serverRequest);
     },
   );
 }

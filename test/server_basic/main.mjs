@@ -19,35 +19,35 @@ wsServer.on('connection', ws => {
 
 const server = new Server({
   instances: INSTANCES,
-  requestListener: async clientRequest => {
+  requestListener: async serverRequest => {
     console.log(
-      `[${new Date().toISOString()}] ${clientRequest.listenerID} ${clientRequest.ipFamily} [${clientRequest.remoteAddress}]:${clientRequest.remotePort} ${clientRequest.headers[':method']} /${clientRequest.path}`
+      `[${new Date().toISOString()}] ${serverRequest.listenerID} ${serverRequest.ipFamily} [${serverRequest.remoteAddress}]:${serverRequest.remotePort} ${serverRequest.headers[':method']} /${serverRequest.path}`
     );
     
-    if (clientRequest.pathIsHostname) {
-      clientRequest.respond('Error: connect requests unsupported', { ':status': 405 });
+    if (serverRequest.pathIsHostname) {
+      serverRequest.respond('Error: connect requests unsupported', { ':status': 405 });
       return;
     }
     
-    if (clientRequest.pathMatch('files/')) {
+    if (serverRequest.pathMatch('files/')) {
       await serveFolder({
-        clientRequest: clientRequest.subRequest('files/'),
+        serverRequest: serverRequest.subRequest('files/'),
         fsPathPrefix: 'files',
       });
-    } else if (clientRequest.path == 'ws') {
+    } else if (serverRequest.path == 'ws') {
       serveWebSocket({
-        clientRequest,
+        serverRequest,
         wsServer,
       });
-    } else if (clientRequest.path == 'file.txt') {
-      clientRequest.respond(`plain text ${new Date().toISOString()}`);
-    } else if (clientRequest.path == '') {
+    } else if (serverRequest.path == 'file.txt') {
+      serverRequest.respond(`plain text ${new Date().toISOString()}`);
+    } else if (serverRequest.path == '') {
       await serveFile({
-        clientRequest,
+        serverRequest,
         fsPath: 'index.html',
       });
     } else {
-      clientRequest.respond('Error: path not found', { ':status': 404 });
+      serverRequest.respond('Error: path not found', { ':status': 404 });
     }
   },
 });

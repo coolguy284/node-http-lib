@@ -97,7 +97,7 @@ function unixSecsToString(unixSecs) {
 }
 
 export async function serveFile({
-  clientRequest,
+  serverRequest,
   fsPath,
   includeLastModified = true,
   // integer seconds since unix epoch
@@ -118,14 +118,14 @@ export async function serveFile({
   // Symbol.asyncDispose
   fsPromisesOpen = open,
 }) {
-  const processedPath = getProcessedPath(clientRequest.path);
+  const processedPath = getProcessedPath(serverRequest.path);
   
   try {
     const stats = await fsPromisesStat(fsPath);
     
     if (!stats.isFile()) {
       await serveFile_send404({
-        clientRequest,
+        serverRequest,
         processedPath,
         serve404,
         additionalHeaders,
@@ -144,12 +144,12 @@ export async function serveFile({
       contentType = mimeType;
     }
     
-    if ('if-none-match' in clientRequest.headers) {
-      const match = /^"(.*)"$/.exec(clientRequest.headers['if-none-match']);
+    if ('if-none-match' in serverRequest.headers) {
+      const match = /^"(.*)"$/.exec(serverRequest.headers['if-none-match']);
       
       if (match == null) {
         await serveFile_send400_generic({
-          clientRequest,
+          serverRequest,
           processedPath,
           serve400,
           additionalHeaders,
@@ -160,7 +160,7 @@ export async function serveFile({
       const requestEtag = match[1];
       
       if (requestEtag == etag) {
-        clientRequest.respond(
+        serverRequest.respond(
           null,
           {
             ':status': 304,
@@ -184,10 +184,10 @@ export async function serveFile({
       }
     }
     
-    if (includeLastModified && 'if-modified-since' in clientRequest.headers) {
-      if (!/^(?:Sun|Mon|Tue|Wed|Thur|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(clientRequest.headers['if-modified-since'])) {
+    if (includeLastModified && 'if-modified-since' in serverRequest.headers) {
+      if (!/^(?:Sun|Mon|Tue|Wed|Thur|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(serverRequest.headers['if-modified-since'])) {
         await serveFile_send400_generic({
-          clientRequest,
+          serverRequest,
           processedPath,
           serve400,
           additionalHeaders,
@@ -195,12 +195,12 @@ export async function serveFile({
         return;
       }
       
-      const requestLastModifiedSecs = Math.floor(new Date(clientRequest.headers['if-modified-since']).getTime() / 1000);
+      const requestLastModifiedSecs = Math.floor(new Date(serverRequest.headers['if-modified-since']).getTime() / 1000);
       
       const fileLastModifiedSecs = Math.floor(stats.mtimeMs / 1000);
       
       if (requestLastModifiedSecs == fileLastModifiedSecs) {
-        clientRequest.respond(
+        serverRequest.respond(
           null,
           {
             ':status': 304,
@@ -226,12 +226,12 @@ export async function serveFile({
     
     let ranges;
     
-    if ('range' in clientRequest.headers) {
-      const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(clientRequest.headers.range);
+    if ('range' in serverRequest.headers) {
+      const match = /^(\w+)=((?:\d*-\d*, )*\d*-\d*)$/.exec(serverRequest.headers.range);
       
       if (match == null) {
         await serveFile_send400_generic({
-          clientRequest,
+          serverRequest,
           processedPath,
           serve400,
           additionalHeaders,
@@ -243,7 +243,7 @@ export async function serveFile({
       
       if (unit != 'bytes') {
         await serveFile_send400_generic({
-          clientRequest,
+          serverRequest,
           processedPath,
           serve400,
           additionalHeaders,
@@ -266,7 +266,7 @@ export async function serveFile({
       if (ranges.length > 1) {
         // reject multipart range requests for now
         await serveFile_send416({
-          clientRequest,
+          serverRequest,
           processedPath,
           serve416,
           additionalHeaders,
@@ -278,7 +278,7 @@ export async function serveFile({
         if (start == null && end == null) {
           // invalid
           await serveFile_send400_generic({
-            clientRequest,
+            serverRequest,
             processedPath,
             serve400,
             additionalHeaders,
@@ -288,7 +288,7 @@ export async function serveFile({
           // check that suffix length is permissible
           if (end > stats.size) {
             await serveFile_send416({
-              clientRequest,
+              serverRequest,
               processedPath,
               serve416,
               additionalHeaders,
@@ -299,7 +299,7 @@ export async function serveFile({
           // check if start is in range
           if (start >= stats.size) {
             await serveFile_send416({
-              clientRequest,
+              serverRequest,
               processedPath,
               serve416,
               additionalHeaders,
@@ -310,7 +310,7 @@ export async function serveFile({
           // check if start & end are in range
           if (start >= stats.size || end >= stats.size) {
             await serveFile_send416({
-              clientRequest,
+              serverRequest,
               processedPath,
               serve416,
               additionalHeaders,
@@ -321,7 +321,7 @@ export async function serveFile({
           // check that end > start
           if (end < start) {
             await serveFile_send416({
-              clientRequest,
+              serverRequest,
               processedPath,
               serve416,
               additionalHeaders,
@@ -332,7 +332,7 @@ export async function serveFile({
       }
     }
     
-    if ('range' in clientRequest.headers) {
+    if ('range' in serverRequest.headers) {
       if (ranges.length > 1) {
         const boundary = randomBytes(32).toString('hex');
         
@@ -371,8 +371,8 @@ export async function serveFile({
           ...additionalHeaders,
         };
         
-        if (clientRequest.headers[':method'] == 'HEAD') {
-          clientRequest.respond(
+        if (serverRequest.headers[':method'] == 'HEAD') {
+          serverRequest.respond(
             null,
             headers,
           );
@@ -400,7 +400,7 @@ export async function serveFile({
             
             const fileStream = multiStream(multiStreamSegments);
             
-            clientRequest.respond(
+            serverRequest.respond(
               fileStream,
               headers,
             );
@@ -431,8 +431,8 @@ export async function serveFile({
           ...additionalHeaders,
         };
         
-        if (clientRequest.headers[':method'] == 'HEAD') {
-          clientRequest.respond(
+        if (serverRequest.headers[':method'] == 'HEAD') {
+          serverRequest.respond(
             null,
             headers,
           );
@@ -440,7 +440,7 @@ export async function serveFile({
           const fileStream = fsCreateReadStream(fsPath, { start, end });
           await awaitFileStreamReady(fileStream);
           
-          clientRequest.respond(
+          serverRequest.respond(
             fileStream,
             headers,
           );
@@ -465,8 +465,8 @@ export async function serveFile({
         ...additionalHeaders,
       };
       
-      if (clientRequest.headers[':method'] == 'HEAD') {
-        clientRequest.respond(
+      if (serverRequest.headers[':method'] == 'HEAD') {
+        serverRequest.respond(
           null,
           headers,
         );
@@ -474,7 +474,7 @@ export async function serveFile({
         const fileStream = fsCreateReadStream(fsPath);
         await awaitFileStreamReady(fileStream);
         
-        clientRequest.respond(
+        serverRequest.respond(
           fileStream,
           headers,
         );
@@ -483,7 +483,7 @@ export async function serveFile({
   } catch (err) {
     if (err.code == 'ENOENT') {
       await serveFile_send404({
-        clientRequest,
+        serverRequest,
         processedPath,
         serve404,
         additionalHeaders,
@@ -494,7 +494,7 @@ export async function serveFile({
       }
       
       await serveFile_send500({
-        clientRequest,
+        serverRequest,
         processedPath,
         serve500,
         additionalHeaders,

@@ -7,7 +7,7 @@ import { createSecureServer as createHTTP2Server } from 'node:http2';
 import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
-import { ClientRequest } from './client_request.mjs';
+import { ServerRequest } from './client_request.mjs';
 import { multiStream } from '../lib/multi_stream.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {
@@ -58,7 +58,7 @@ export class Server {
     headers[':authority'] = req.headers.host;
     delete headers.host;
     
-    await this.#requestListener(ClientRequest.createNew({
+    await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(req.socket),
       secure,
@@ -113,7 +113,7 @@ export class Server {
     delete headers.upgrade;
     delete headers.connection;
     
-    await this.#requestListener(ClientRequest.createNew({
+    await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
       secure,
@@ -176,7 +176,7 @@ export class Server {
     delete headers.upgrade;
     delete headers.connection;
     
-    await this.#requestListener(ClientRequest.createNew({
+    await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
       secure,
@@ -233,7 +233,7 @@ export class Server {
     
     delete processedHeaders[':path'];
     
-    await this.#requestListener(ClientRequest.createNew({
+    await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(stream.session.socket),
       secure,
@@ -471,7 +471,7 @@ export class Server {
     instances:
     [
       {
-        listenerID: string | null, (for use in ClientRequest)
+        listenerID: string | null, (for use in ServerRequest)
         mode: 'http' | 'https' | 'http2' | 'http3',
         ip: string<ip address>,
         port: integer<port, 0 - 65535>,
