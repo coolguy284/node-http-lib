@@ -140,10 +140,17 @@ export class ServerRequest {
   subRequest(pathStart) {
     return new ServerRequest({
       listenerID: this.listenerID,
+      ipFamily: this.ipFamily,
+      localAddress: this.localAddress,
+      localPort: this.localPort,
+      remoteAddress: this.remoteAddress,
+      remotePort: this.remotePort,
+      pathIsHostname: this.pathIsHostname,
       path: this.path.slice(pathStart.length - 1),
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
+      streamReadable: this.streamReadable,
       internal: this.internal,
       respondFunc: this.#respondFunc,
     });
