@@ -7,6 +7,7 @@ import { duplexPair } from 'node:stream';
 export function serveWebSocket({
   serverRequest,
   wsServer,
+  gracefulShutdownFunc = null,
 }) {
   let [ serveWsEnd, handleUpgradeEnd ] = duplexPair();
   
@@ -49,6 +50,15 @@ export function serveWebSocket({
     
     delete handleUpgradeEnd.write;
     delete handleUpgradeEnd.end;
+    
+    const shutdownPromise = new Promise(r => {
+      serverRequest.streamReadable.once('close', () => {
+        r();
+        serverRequest.server.removeShutdownPromise(shutdownPromise);
+      });
+    });
+    
+    serverRequest.server.addShutdownPromise(shutdownPromise);
   };
   
   handleUpgradeEnd.end = msg => {
@@ -78,10 +88,11 @@ export function serveWebSocket({
       },
     );
     
-    serveWsEnd.destroy();
-    handleUpgradeEnd.destroy();
     delete handleUpgradeEnd.write;
     delete handleUpgradeEnd.end;
+    
+    serveWsEnd.destroy();
+    handleUpgradeEnd.destroy();
   };
   
   wsServer.handleUpgrade(
@@ -96,6 +107,16 @@ export function serveWebSocket({
     handleUpgradeEnd,
     Buffer.alloc(0),
     ws => {
+      const processedGracefulShutdownFunc = () => {
+        gracefulShutdownFunc(ws);
+      };
+      
+      serverRequest.server.addGracefulShutdownFunc(processedGracefulShutdownFunc);
+      
+      ws.on('close', () => {
+        serverRequest.server.removeGracefulShutdownFunc(processedGracefulShutdownFunc);
+      });
+      
       wsServer.emit('connection', ws, serverRequest);
     },
   );

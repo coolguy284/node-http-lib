@@ -2,6 +2,7 @@ post-quantum tls support
 http3 support
 
 low prio:
+add docs to things & readme
 rename to node-http-lib
 test that server.destroy works
 client & proxy support

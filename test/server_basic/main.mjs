@@ -38,6 +38,9 @@ using server = new Server({
       serveWebSocket({
         serverRequest,
         wsServer,
+        gracefulShutdownFunc: ws => {
+          ws.close();
+        },
       });
     } else if (serverRequest.path == 'file.txt') {
       serverRequest.respond(`plain text ${new Date().toISOString()}`);
