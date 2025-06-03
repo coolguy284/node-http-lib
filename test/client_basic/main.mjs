@@ -4,9 +4,9 @@
     host: 'localhost',
     port: 8080,
     path: 'files/index.html',
-    headers: {},
-    body: null,
-    errorIfErrorStatusCode: true,
+    headers: {}, // optional
+    body: null, // optional
+    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http:');
@@ -20,9 +20,9 @@
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
-    headers: {},
-    body: null,
-    errorIfErrorStatusCode: true,
+    headers: {}, // optional
+    body: null, // optional
+    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('https:');
@@ -31,14 +31,17 @@
 }
 
 {
+  const session = new ClientRequestSession();
+  
   const clientResponse = await request({
     mode: 'http2',
     host: 'localhost',
     port: 8443,
+    session, // optional
     path: 'files/index.html',
-    headers: {},
-    body: null,
-    errorIfErrorStatusCode: true,
+    headers: {}, // optional
+    body: null, // optional
+    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http2:');
@@ -48,14 +51,17 @@
 
 /*
 {
+  const session = new ClientRequestSession();
+  
   const clientResponse = await request({
     mode: 'http3',
     host: 'localhost',
     port: 8443,
+    session, // optional
     path: 'files/index.html',
-    headers: {},
-    body: null,
-    errorIfErrorStatusCode: true,
+    headers: {}, // optional
+    body: null, // optional
+    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http3:');
