@@ -9,3 +9,4 @@ test that server shutdown and destroy work
 serveProxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
+rename http1UpgradedConnections to http1UpgradedAndConnectConnections
