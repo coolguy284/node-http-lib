@@ -6,6 +6,7 @@
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
+    options: {}, // optional
     errorIfErrorStatusCode: true, // optional
   });
   
@@ -22,6 +23,7 @@
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
+    options: {}, // optional
     errorIfErrorStatusCode: true, // optional
   });
   
@@ -31,16 +33,17 @@
 }
 
 {
-  const session = new ClientRequestSession();
+  using session = new RequestSession();
   
   const clientResponse = await request({
     mode: 'http2',
+    session, // optional
     host: 'localhost',
     port: 8443,
-    session, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
+    options: {}, // optional
     errorIfErrorStatusCode: true, // optional
   });
   
@@ -51,16 +54,17 @@
 
 /*
 {
-  const session = new ClientRequestSession();
+  using session = new RequestSession();
   
   const clientResponse = await request({
     mode: 'http3',
+    session, // optional
     host: 'localhost',
     port: 8443,
-    session, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
+    options: {}, // optional
     errorIfErrorStatusCode: true, // optional
   });
   

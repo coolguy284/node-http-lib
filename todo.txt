@@ -4,7 +4,6 @@ http3 support
 low prio:
 rename to node-http-lib
 test that server.destroy works
-add graceful shutdown mode
 client & proxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support

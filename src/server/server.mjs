@@ -591,6 +591,10 @@ export class Server {
   }
   
   async listen() {
+    if (this.#listening) {
+      throw new Error('already listening');
+    }
+    
     await Promise.all(
       this.#instances.map(async ({ mode, ip, port, hasTlsComponent, firstInTlsComponent, server, tlsServer }) => {
         switch (mode) {
@@ -645,9 +649,79 @@ export class Server {
     this.#listening = true;
   }
   
+  async close() {
+    if (!this.#listening) {
+      return;
+    }
+    
+    let finishPromises = [];
+    
+    for (const {
+      mode,
+      http1UpgradedSockets,
+      http2Sessions,
+      hasTlsComponent,
+      firstInTlsComponent,
+      server,
+      tlsServer,
+      tlsServerConnections,
+      tlsServerCachedSessionTimeout,
+    } of this.#instances) {
+      if (mode == 'http' || mode == 'https') {
+        server.close();
+        
+        for (const socket of http1UpgradedSockets) {
+          if (!socket.destroyed) {
+            finishPromises.push(
+              new Promise(r => {
+                socket.once('close', () => r());
+              })
+            );
+          }
+        }
+      } else if (mode == 'http2') {
+        server.close();
+        
+        for (const session of http2Sessions) {
+          if (!session.closed) {
+            session.close();
+            
+            finishPromises.push(
+              new Promise(r => {
+                session.once('close', () => r());
+              })
+            );
+          }
+        }
+      }
+      
+      if (hasTlsComponent) {
+        if (firstInTlsComponent) {
+          tlsServer.close();
+          
+          if (tlsServerCachedSessionTimeout != null) {
+            clearTimeout(tlsServerCachedSessionTimeout);
+          }
+          
+          for (const socket of tlsServerConnections) {
+            if (!socket.destroyed) {
+              finishPromises.push(
+                new Promise(r => {
+                  socket.once('close', () => r());
+                })
+              );
+            }
+          }
+        }
+      }
+    }
+    
+    await Promise.all(finishPromises);
+  }
+  
   destroy() {
     if (!this.#listening) {
-      throw new Error('cannot close servers, servers not listening yet');
+      return;
     }
     
     for (const {
@@ -692,4 +766,6 @@ export class Server {
     
     this.#listening = false;
   }
+  
+  [Symbol.asyncDispose] = this.close;
 }
