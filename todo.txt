@@ -2,6 +2,7 @@ post-quantum tls support
 http3 support
 
 low prio:
+test that server.destroy works
 add graceful shutdown mode
 client & proxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
