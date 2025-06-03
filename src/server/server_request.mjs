@@ -38,6 +38,7 @@ export class ServerRequest {
     }
   */
   streamReadable; // stream.Readable
+  server;
   internal;
   
   static createNew({
@@ -51,6 +52,7 @@ export class ServerRequest {
     pathHostnameString,
     headers,
     streamReadable,
+    server,
     internal,
     respondFunc,
   }) {
@@ -90,6 +92,7 @@ export class ServerRequest {
       pathRaw: pathString,
       headers,
       streamReadable,
+      server,
       internal,
       respondFunc,
     });
@@ -108,6 +111,7 @@ export class ServerRequest {
     pathRaw,
     headers,
     streamReadable,
+    server,
     internal,
     respondFunc,
   }) {
@@ -123,6 +127,7 @@ export class ServerRequest {
     this.pathRaw = pathRaw;
     this.headers = headers;
     this.streamReadable = streamReadable;
+    this.server = server;
     this.internal = internal;
     this.#respondFunc = respondFunc;
   }
@@ -151,6 +156,7 @@ export class ServerRequest {
       pathRaw: this.pathRaw,
       headers: this.headers,
       streamReadable: this.streamReadable,
+      server: this.server,
       internal: this.internal,
       respondFunc: this.#respondFunc,
     });

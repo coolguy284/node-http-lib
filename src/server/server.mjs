@@ -65,6 +65,7 @@ export class Server {
       pathString: req.url,
       headers,
       streamReadable: req,
+      server: this,
       internal: {
         mode: 'http1',
         req,
@@ -123,6 +124,7 @@ export class Server {
         head,
         socket,
       ]),
+      server: this,
       internal: {
         mode: 'http1-upgrade',
         req,
@@ -186,6 +188,7 @@ export class Server {
         head,
         socket,
       ]),
+      server: this,
       internal: {
         mode: 'http1-connect',
         req,
@@ -248,6 +251,7 @@ export class Server {
       ),
       headers: processedHeaders,
       streamReadable: stream,
+      server: this,
       internal: {
         mode: 'http2',
         stream,
