@@ -1,3 +1,8 @@
+import { request as httpRequest } from 'node:http';
+import { connect } from 'node:http2';
+import { request as httpsRequest } from 'node:https';
+import { Readable } from 'node:stream';
+
 import { streamToBuffer } from '../lib/stream_to_buffer.mjs';
 
 class ClientResponse {
@@ -12,6 +17,14 @@ class ClientResponse {
   }
 }
 
+export class RequestSession {
+  #sessions = new Map();
+  
+  [Symbol.dispose]() {
+    // TODO
+  }
+}
+
 export async function request({
   mode,
   session = null,
@@ -23,13 +36,33 @@ export async function request({
   options = {},
   errorIfErrorStatusCode = true,
 }) {
-  // TODO
-}
-
-export class RequestSession {
-  #sessions = new Map();
-  
-  [Symbol.dispose]() {
-    // TODO
+  switch (mode) {
+    case 'http': {
+      const request = httpRequest({
+        host,
+        port,
+        path: `/${path}`,
+        headers,
+        ...options,
+      });
+      
+      if (body != null) {
+        if (body instanceof Readable) {
+          body.pipe(request);
+        } else {
+          request.end(body);
+        }
+      }
+      break;
+    }
+    
+    case 'https':
+      break;
+    
+    case 'http2':
+      break;
+    
+    default:
+      throw new Error(`mode unrecognized: ${JSON.stringify(mode)}`);
   }
 }

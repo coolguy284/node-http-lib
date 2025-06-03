@@ -2,8 +2,8 @@ import {
   createServer as createHTTPServer,
   STATUS_CODES,
 } from 'node:http';
-import { createServer as createHTTPSServer } from 'node:https';
 import { createSecureServer as createHTTP2Server } from 'node:http2';
+import { createServer as createHTTPSServer } from 'node:https';
 import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
