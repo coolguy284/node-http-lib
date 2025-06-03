@@ -11,7 +11,7 @@
   
   console.log('http:');
   console.log(clientResponse.statusCode);
-  console.log(clientResponse.body);
+  console.log(await clientResponse.getBodyAsBuffer());
 }
 
 {
@@ -27,7 +27,7 @@
   
   console.log('https:');
   console.log(clientResponse.statusCode);
-  console.log(clientResponse.body);
+  console.log(await clientResponse.getBodyAsBuffer());
 }
 
 {
@@ -46,7 +46,7 @@
   
   console.log('http2:');
   console.log(clientResponse.statusCode);
-  console.log(clientResponse.body);
+  console.log(await clientResponse.getBodyAsBuffer());
 }
 
 /*
@@ -66,6 +66,6 @@
   
   console.log('http3:');
   console.log(clientResponse.statusCode);
-  console.log(clientResponse.body);
+  console.log(await clientResponse.getBodyAsBuffer());
 }
 */
