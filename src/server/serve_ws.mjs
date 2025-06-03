@@ -51,14 +51,14 @@ export function serveWebSocket({
     delete handleUpgradeEnd.write;
     delete handleUpgradeEnd.end;
     
-    const shutdownPromise = new Promise(r => {
+    const gracefulShutdownPromise = new Promise(r => {
       serverRequest.streamReadable.once('close', () => {
         r();
-        serverRequest.server.removeShutdownPromise(shutdownPromise);
+        serverRequest.server.removeGracefulShutdownPromise(gracefulShutdownPromise);
       });
     });
     
-    serverRequest.server.addShutdownPromise(shutdownPromise);
+    serverRequest.server.addGracefulShutdownPromise(gracefulShutdownPromise);
   };
   
   handleUpgradeEnd.end = msg => {

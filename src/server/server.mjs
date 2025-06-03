@@ -49,6 +49,8 @@ export class Server {
   #instances;
   #requestListener;
   #listening = false;
+  #gracefulShutdownPromises = new Set();
+  #gracefulShutdownFuncs = new Set();
   
   async #handleHTTP1Request({ listenerID, secure, req, res }) {
     let headers = Object.fromEntries(Object.entries(req.headers));
@@ -594,6 +596,22 @@ export class Server {
     this.#requestListener = requestListener;
   }
   
+  addGracefulShutdownFunc(gracefulShutdownFunc) {
+    this.#gracefulShutdownFuncs.add(gracefulShutdownFunc);
+  }
+  
+  removeGracefulShutdownFunc(gracefulShutdownFunc) {
+    this.#gracefulShutdownFuncs.delete(gracefulShutdownFunc);
+  }
+  
+  addGracefulShutdownPromise(gracefulShutdownPromise) {
+    this.#gracefulShutdownPromises.add(gracefulShutdownPromise);
+  }
+  
+  removeGracefulShutdownPromise(gracefulShutdownPromise) {
+    this.#gracefulShutdownPromises.delete(gracefulShutdownPromise);
+  }
+  
   async listen() {
     if (this.#listening) {
       throw new Error('already listening');
@@ -660,6 +678,12 @@ export class Server {
     
     let finishPromises = [];
     
+    for (const gracefulShutdownFunc of this.#gracefulShutdownFuncs) {
+      await gracefulShutdownFunc();
+    }
+    
+    this.#gracefulShutdownFuncs.clear();
+    
     for (const {
       mode,
       http1UpgradedSockets,
@@ -719,6 +743,12 @@ export class Server {
         }
       }
     }
+    
+    for (const gracefulShutdownPromise of this.#gracefulShutdownPromises) {
+      finishPromises.push(gracefulShutdownPromise);
+    }
+    
+    this.#gracefulShutdownPromises.clear();
     
     await Promise.all(finishPromises);
   }
