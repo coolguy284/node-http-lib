@@ -1,5 +1,5 @@
 {
-  "name": "web-server-lib",
+  "name": "http-lib",
   "type": "module",
   "version": "0.2.0",
   "description": "A library to present a simple unified interface for running nodejs HTTP/HTTPS 1, 2, and 3 servers, with support for websockets.",
