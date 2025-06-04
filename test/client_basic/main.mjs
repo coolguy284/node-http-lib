@@ -1,3 +1,8 @@
+import {
+  request,
+  RequestSession,
+} from '../../src/main.mjs';
+
 {
   const clientResponse = await request({
     mode: 'http',
