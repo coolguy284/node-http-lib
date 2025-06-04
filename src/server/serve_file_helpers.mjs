@@ -14,7 +14,7 @@ function serveFile_sendInternal({ serverRequest, statusCode, errorMsg, additiona
     serverRequest.respond(
       `Error: ${errorMsg}`,
       headers,
-    )
+    );
   }
 }
 
