@@ -12,7 +12,7 @@ import { ServerRequest } from './server_request.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {
   let match;
-  if (match = /::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/.exec(ip)) {
+  if ((match = /::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/.exec(ip)) != null) {
     return match[1];
   } else {
     return ip;
@@ -244,12 +244,12 @@ export class Server {
       secure,
       ...(
         headers[':method'] == 'CONNECT' ?
-        {
-          pathHostnameString: headers[':path'],
-        } :
-        {
-          pathString: headers[':path'],
-        }
+          {
+            pathHostnameString: headers[':path'],
+          } :
+          {
+            pathString: headers[':path'],
+          }
       ),
       headers: processedHeaders,
       streamReadable: stream,
@@ -569,16 +569,20 @@ export class Server {
             });
           });
           
-          server.on('stream', async (stream, headers, flags, rawHeaders) => {
-            await this.#handleHTTP2Request({
-              listenerID,
-              secure: true,
-              stream,
-              headers,
-              flags,
-              rawHeaders,
-            });
-          });
+          server.on(
+            'stream',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            async (stream, headers, flags, rawHeaders) => {
+              await this.#handleHTTP2Request({
+                listenerID,
+                secure: true,
+                stream,
+                headers,
+                flags,
+                rawHeaders,
+              });
+            }
+          );
           
           this.#createTLSServer({
             ip,

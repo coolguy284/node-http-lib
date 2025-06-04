@@ -170,12 +170,12 @@ export async function serveFile({
             ...(etag != null ? { 'etag': etag } : {}),
             ...(
               includeLastModified ?
-              {
-                'last-modified': unixSecsToString(
-                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
-                ),
-              } :
-              {}
+                {
+                  'last-modified': unixSecsToString(
+                    lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                  ),
+                } :
+                {}
             ),
             ...additionalHeaders,
           },
@@ -210,12 +210,12 @@ export async function serveFile({
             ...(etag != null ? { 'etag': etag } : {}),
             ...(
               includeLastModified ?
-              {
-                'last-modified': unixSecsToString(
-                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
-                ),
-              } :
-              {}
+                {
+                  'last-modified': unixSecsToString(
+                    lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                  ),
+                } :
+                {}
             ),
             ...additionalHeaders,
           },
@@ -343,7 +343,7 @@ export async function serveFile({
           
           contentLength += (
             `--${boundary}\r\n` +
-            `content-type: ${contentType}\r\n` + 
+            `content-type: ${contentType}\r\n` +
             `content-range: ${start}-${end}/${stats.size}\r\n`
           ).length;
           
@@ -361,12 +361,12 @@ export async function serveFile({
           'content-length': '' + contentLength,
           ...(
             includeLastModified ?
-            {
-              'last-modified': unixSecsToString(
-                lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
-              ),
-            } :
-            {}
+              {
+                'last-modified': unixSecsToString(
+                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                ),
+              } :
+              {}
           ),
           ...additionalHeaders,
         };
@@ -387,7 +387,7 @@ export async function serveFile({
               
               multiStreamSegments.push(
                 `--${boundary}\r\n` +
-                `content-type: ${contentType}\r\n` + 
+                `content-type: ${contentType}\r\n` +
                 `content-range: ${start}-${end}/${stats.size}\r\n`
               );
               
@@ -421,12 +421,12 @@ export async function serveFile({
           'content-length': '' + (end - start + 1),
           ...(
             includeLastModified ?
-            {
-              'last-modified': unixSecsToString(
-                lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
-              ),
-            } :
-            {}
+              {
+                'last-modified': unixSecsToString(
+                  lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+                ),
+              } :
+              {}
           ),
           ...additionalHeaders,
         };
@@ -455,12 +455,12 @@ export async function serveFile({
         ...(etag != null ? { 'etag': etag } : {}),
         ...(
           includeLastModified ?
-          {
-            'last-modified': unixSecsToString(
-              lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
-            ),
-          } :
-          {}
+            {
+              'last-modified': unixSecsToString(
+                lastModifiedOverride ?? Math.floor(stats.mtimeMs / 1000)
+              ),
+            } :
+            {}
         ),
         ...additionalHeaders,
       };
