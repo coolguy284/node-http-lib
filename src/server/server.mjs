@@ -347,7 +347,7 @@ export class Server {
     });
   }
   
-  #createTLSServer({
+  static #createTLSServer({
     ip,
     port,
     tlsServers,
@@ -541,7 +541,7 @@ export class Server {
             secure: true,
           });
           
-          this.#createTLSServer({
+          Server.#createTLSServer({
             ip,
             port,
             tlsServers,
@@ -584,7 +584,7 @@ export class Server {
             }
           );
           
-          this.#createTLSServer({
+          Server.#createTLSServer({
             ip,
             port,
             tlsServers,
@@ -805,5 +805,7 @@ export class Server {
     this.#listening = false;
   }
   
-  [Symbol.asyncDispose] = this.close;
+  async [Symbol.asyncDispose]() {
+    await this.close();
+  }
 }
