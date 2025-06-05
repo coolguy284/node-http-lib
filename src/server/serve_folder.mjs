@@ -105,11 +105,13 @@ export async function serveFolder({
         lastModifiedOverrideFunc?.({
           requestPath: serverRequest.path,
           fsPath: resultFsPath,
+          serverRequest,
         }) :
         null,
     etag: etagFunc?.({
       requestPath: serverRequest.path,
       fsPath: resultFsPath,
+      serverRequest,
     }),
     additionalHeaders,
     serve400,
