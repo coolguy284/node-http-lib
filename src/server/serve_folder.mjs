@@ -100,8 +100,17 @@ export async function serveFolder({
     serverRequest,
     fsPath: resultFsPath,
     includeLastModified,
-    lastModifiedOverride: includeLastModified ? lastModifiedOverrideFunc?.(resultFsPath) : null,
-    etag: etagFunc?.(resultFsPath),
+    lastModifiedOverride:
+      includeLastModified ?
+        lastModifiedOverrideFunc?.({
+          requestPath: serverRequest.path,
+          fsPath: resultFsPath,
+        }) :
+        null,
+    etag: etagFunc?.({
+      requestPath: serverRequest.path,
+      fsPath: resultFsPath,
+    }),
     additionalHeaders,
     serve400,
     serve404,
