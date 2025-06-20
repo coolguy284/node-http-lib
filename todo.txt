@@ -1,7 +1,8 @@
+add null cipher mode to tls cfg marked as insecure
 post-quantum tls support
 http3 support
-add session support to client
 add http1 upgrade / connect support to client
+merge/remove client-old.mjs
 
 low prio:
 add docs to things

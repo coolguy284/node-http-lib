@@ -3,6 +3,7 @@ import { connect } from 'node:http2';
 import { request as httpsRequest } from 'node:https';
 import { Readable } from 'node:stream';
 
+import { createDisposableIfNull } from '../lib/create_disposable.mjs';
 import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
 import { streamToBuffer } from '../lib/stream_to_buffer.mjs';
 
@@ -27,19 +28,50 @@ class ClientResponse {
   }
 }
 
-// export class RequestSession {
-//   #sessions = new Map();
+export class RequestSession {
+  #disposed = false;
+  #sessions = new Map();
   
-//   [Symbol.dispose]() {
-//     // TODO
-//   }
-// }
+  async createOrGetHttp2Session({ host, port, options }) {
+    if (this.#disposed) {
+      throw new Error('cannot create new http2 sessions, session manager is disposed');
+    }
+    
+    const sessionIndex = `http2:[${host}]:${port}`;
+    
+    if (this.#sessions.has(sessionIndex)) {
+      return this.#sessions.get(sessionIndex);
+    } else {
+      const session = connect(`https://${host.includes(':') ? `[${host}]` : host}:${port ?? 443}`, options);
+      
+      await awaitEventOrError(session, 'connect');
+      
+      this.#sessions.set(sessionIndex, session);
+      
+      session.on('close', () => {
+        this.#sessions.delete(sessionIndex);
+      });
+    }
+  }
+  
+  [Symbol.dispose]() {
+    if (this.#disposed) {
+      return;
+    }
+    
+    for (const session of this.#sessions.values()) {
+      session.close();
+    }
+    
+    this.#disposed = true;
+  }
+}
 
 export async function request({
   mode,
-  //session = null,
+  session = null,
   host,
-  port,
+  port = null,
   path,
   headers = {},
   body = null,
@@ -94,37 +126,37 @@ export async function request({
     }
     
     case 'http2': {
-      const connection = connect(`https://${host.includes(':') ? `[${host}]` : host}:${port ?? 443}`, options);
+      using workingSession = createDisposableIfNull(session, () => new RequestSession());
       
-      await awaitEventOrError(connection, 'connect');
+      const connection = await workingSession.get().createOrGetHttp2Session({
+        host,
+        port: port ?? 443,
+        options,
+      });
       
-      try {
-        let processedHeaders = {
-          ':path': `/${path}`,
-          ...headers,
-        };
-        
-        const stream = connection.request(processedHeaders, options);
-        
-        if (body != null) {
-          if (body instanceof Readable) {
-            body.pipe(stream);
-          } else {
-            stream.end(body);
-          }
+      let processedHeaders = {
+        ':path': `/${path}`,
+        ...headers,
+      };
+      
+      const stream = connection.request(processedHeaders, options);
+      
+      if (body != null) {
+        if (body instanceof Readable) {
+          body.pipe(stream);
         } else {
-          stream.end();
+          stream.end(body);
         }
-        
-        const [ responseHeaders, _ ] = await awaitEventOrError(stream, 'response');
-        
-        clientResponse = new ClientResponse({
-          headers: responseHeaders,
-          bodyStream: stream,
-        });
-      } finally {
-        connection.close();
+      } else {
+        stream.end();
       }
+      
+      const [ responseHeaders, _ ] = await awaitEventOrError(stream, 'response');
+      
+      clientResponse = new ClientResponse({
+        headers: responseHeaders,
+        bodyStream: stream,
+      });
       break;
     }
     
