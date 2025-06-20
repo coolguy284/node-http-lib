@@ -8,3 +8,4 @@ serveProxy support
 add docs to things
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
+http1 session support with connection reuse
