@@ -298,7 +298,7 @@ export class Server {
     secure,
   }) {
     const { listenerID, server } = instance;
-    const http1UpgradedSockets = instance.http1UpgradedSockets = new Set();
+    const http1UpgradeAndConnectSockets = instance.http1UpgradeAndConnectSockets = new Set();
     
     server.on('request', async (req, res) => {
       await this.#handleHTTP1Request({
@@ -311,10 +311,10 @@ export class Server {
     
     server.on('upgrade', async (req, socket, head) => {
       if (!socket.destroyed) {
-        http1UpgradedSockets.add(socket);
+        http1UpgradeAndConnectSockets.add(socket);
         
         socket.on('close', () => {
-          http1UpgradedSockets.delete(socket);
+          http1UpgradeAndConnectSockets.delete(socket);
         });
         
         await this.#handleHTTP1Upgrade({
@@ -331,10 +331,10 @@ export class Server {
       if (!socket.destroyed) {
         // assuming connect requests also count as an upgrade
         
-        http1UpgradedSockets.add(socket);
+        http1UpgradeAndConnectSockets.add(socket);
         
         socket.on('close', () => {
-          http1UpgradedSockets.delete(socket);
+          http1UpgradeAndConnectSockets.delete(socket);
         });
         
         await this.#handleHTTP1Connect({
@@ -500,7 +500,7 @@ export class Server {
       
       newInstance.hasTlsComponent = false;
       newInstance.server = null;
-      newInstance.http1UpgradedSockets = null; // only used by http1
+      newInstance.http1UpgradeAndConnectSockets = null; // only used by http1
       newInstance.http2Sessions = null; // only used by http2
       newInstance.firstInTlsComponent = null; // only used for https/http2 sharing
       newInstance.tlsServer = null; // only used for https/http2 sharing
@@ -665,7 +665,7 @@ export class Server {
     
     for (const {
       mode,
-      http1UpgradedSockets,
+      http1UpgradeAndConnectSockets,
       http2Sessions,
       hasTlsComponent,
       firstInTlsComponent,
@@ -677,7 +677,7 @@ export class Server {
       if (mode == 'http' || mode == 'https') {
         server.close();
         
-        for (const socket of http1UpgradedSockets) {
+        for (const socket of http1UpgradeAndConnectSockets) {
           if (!socket.destroyed) {
             finishPromises.push(
               new Promise(r => {
@@ -739,7 +739,7 @@ export class Server {
     
     for (const {
       mode,
-      http1UpgradedSockets,
+      http1UpgradeAndConnectSockets,
       http2Sessions,
       hasTlsComponent,
       firstInTlsComponent,
@@ -751,7 +751,7 @@ export class Server {
       if (mode == 'http' || mode == 'https') {
         server.closeAllConnections();
         
-        for (const socket of http1UpgradedSockets) {
+        for (const socket of http1UpgradeAndConnectSockets) {
           socket.destroy();
         }
       } else if (mode == 'http2') {

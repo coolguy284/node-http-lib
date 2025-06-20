@@ -1,13 +1,12 @@
 post-quantum tls support
 http3 support
-
-low prio:
 add session support to client
 add http1 upgrade / connect support to client
 finish client support
+
+low prio:
 add docs to things
 test that server shutdown and destroy work
 serveProxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
-rename http1UpgradedConnections to http1UpgradedAndConnectConnections
