@@ -8,6 +8,7 @@ import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
 import { multiStream } from '../lib/multi_stream.mjs';
+import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
 import { ServerRequest } from './server_request.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {
@@ -629,40 +630,14 @@ export class Server {
           case 'http2':
             if (hasTlsComponent) {
               if (firstInTlsComponent) {
-                await new Promise((r, j) => {
-                  const successListener = () => {
-                    r();
-                    tlsServer.off('error', errorListener);
-                  };
-                  
-                  const errorListener = err => {
-                    j(err);
-                  };
-                  
-                  tlsServer.on('error', errorListener);
-                  
-                  tlsServer.listen(port, ip, () => {
-                    successListener();
-                  });
-                });
+                tlsServer.listen(port, ip);
+                
+                await awaitEventOrError(tlsServer, 'listening');
               }
             } else {
-              await new Promise((r, j) => {
-                const successListener = () => {
-                  r();
-                  server.off('error', errorListener);
-                };
-                
-                const errorListener = err => {
-                  j(err);
-                };
-                
-                server.on('error', errorListener);
-                
-                server.listen(port, ip, () => {
-                  successListener();
-                });
-              });
+              server.listen(port, ip);
+              
+              await awaitEventOrError(server, 'listening');
             }
             break;
           
