@@ -77,9 +77,16 @@ export async function request({
         } else {
           clientRequest.end(body);
         }
+      } else {
+        clientRequest.end();
       }
       
-      // TODO
+      const [ response ] = await awaitEventOrError(clientRequest, 'respose');
+      
+      clientResponse = new ClientResponse({
+        headers: response.headers,
+        bodyStream: response,
+      });
       break;
     }
     
@@ -102,6 +109,8 @@ export async function request({
           } else {
             stream.end(body);
           }
+        } else {
+          stream.end();
         }
         
         const [ responseHeaders, _ ] = await awaitEventOrError(stream, 'respose');
