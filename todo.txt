@@ -2,6 +2,8 @@ post-quantum tls support
 http3 support
 
 low prio:
+add session support to client
+add http1 upgrade / connect support to client
 finish client support
 add docs to things
 test that server shutdown and destroy work

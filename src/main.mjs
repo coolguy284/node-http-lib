@@ -9,7 +9,7 @@ export {
 */
 export {
   request,
-  RequestSession,
+  //RequestSession,
 } from './client/client.mjs';
 export { Server } from './server/server.mjs';
 export { serveFolder } from './server/serve_folder.mjs';

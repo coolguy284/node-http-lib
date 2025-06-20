@@ -1,13 +1,13 @@
 import {
   request,
-  RequestSession,
+  //RequestSession,
 } from '../../src/main.mjs';
 
 {
   const clientResponse = await request({
     mode: 'http',
     host: 'localhost',
-    port: 8080,
+    port: 8080, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
@@ -24,7 +24,7 @@ import {
   const clientResponse = await request({
     mode: 'https',
     host: 'localhost',
-    port: 8443,
+    port: 8443, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
@@ -38,13 +38,13 @@ import {
 }
 
 {
-  using session = new RequestSession();
+  //using session = new RequestSession();
   
   const clientResponse = await request({
     mode: 'http2',
-    session, // optional
+    //session, // optional
     host: 'localhost',
-    port: 8443,
+    port: 8443, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
@@ -59,13 +59,13 @@ import {
 
 /*
 {
-  using session = new RequestSession();
+  //using session = new RequestSession();
   
   const clientResponse = await request({
     mode: 'http3',
-    session, // optional
+    //session, // optional
     host: 'localhost',
-    port: 8443,
+    port: 8443, // optional
     path: 'files/index.html',
     headers: {}, // optional
     body: null, // optional
