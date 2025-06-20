@@ -16,8 +16,9 @@ import {
   });
   
   console.log('http:');
-  console.log(clientResponse.statusCode);
+  console.log(clientResponse.headers[':status']);
   console.log(await clientResponse.getBodyAsBuffer());
+  console.log();
 }
 
 {
@@ -33,8 +34,9 @@ import {
   });
   
   console.log('https:');
-  console.log(clientResponse.statusCode);
+  console.log(clientResponse.headers[':status']);
   console.log(await clientResponse.getBodyAsBuffer());
+  console.log();
 }
 
 {
@@ -53,8 +55,9 @@ import {
   });
   
   console.log('http2:');
-  console.log(clientResponse.statusCode);
+  console.log(clientResponse.headers[':status']);
   console.log(await clientResponse.getBodyAsBuffer());
+  console.log();
 }
 
 /*
@@ -74,7 +77,8 @@ import {
   });
   
   console.log('http3:');
-  console.log(clientResponse.statusCode);
+  console.log(clientResponse.headers[':status']);
   console.log(await clientResponse.getBodyAsBuffer());
+  console.log();
 }
 */

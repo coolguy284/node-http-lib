@@ -81,7 +81,7 @@ export async function request({
         clientRequest.end();
       }
       
-      const [ response ] = await awaitEventOrError(clientRequest, 'respose');
+      const [ response ] = await awaitEventOrError(clientRequest, 'response');
       
       clientResponse = new ClientResponse({
         headers: response.headers,
@@ -113,7 +113,7 @@ export async function request({
           stream.end();
         }
         
-        const [ responseHeaders, _ ] = await awaitEventOrError(stream, 'respose');
+        const [ responseHeaders, _ ] = await awaitEventOrError(stream, 'response');
         
         clientResponse = new ClientResponse({
           headers: responseHeaders,
