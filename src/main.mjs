@@ -1,12 +1,3 @@
-/*
-export {
-  request,
-  requestDelayable,
-  RequestError,
-  ResponseError,
-  VALID_REQUEST_PROTOS,
-} from './client/client-old.mjs';
-*/
 export { request } from './client/client.mjs';
 export { RequestSession } from './client/request_session.mjs';
 export { Server } from './server/server.mjs';
