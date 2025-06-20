@@ -51,6 +51,8 @@ export class RequestSession {
       session.on('close', () => {
         this.#sessions.delete(sessionIndex);
       });
+      
+      return session;
     }
   }
   
