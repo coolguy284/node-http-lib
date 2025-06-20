@@ -1,5 +1,14 @@
 import { constants } from 'node:crypto';
 
+export const TLS_CONFIG_UNENCRYPTED_WARNING_INSECURE = {
+  ciphers: [
+    'NULL',
+    'ENULL',
+  ],
+  
+  sessionResumptionWithID: true,
+};
+
 // passes the Qualys SSL Labs test
 // also requires sending header:
 // 'strict-transport-security': 'max-age=31536000', // 1 year

@@ -1,4 +1,3 @@
-add null cipher mode to tls cfg marked as insecure
 post-quantum tls support
 http3 support
 add http1 upgrade / connect support to client
