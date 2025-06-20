@@ -1,11 +1,10 @@
-add http1 upgrade / connect support to client
-
 once nodejs updates:
 post-quantum tls support
 http3 support
 
 low prio:
-add docs to things
 serveProxy support
+  test http1 upgrade support for websocket, and possibly add a flushHeaders option to client request
+add docs to things
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support

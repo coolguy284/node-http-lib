@@ -5,6 +5,7 @@ import { Readable } from 'node:stream';
 import { ClientResponse } from './client_response.mjs';
 import { createDisposableIfNull } from '../lib/create_disposable.mjs';
 import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
+import { multiStream } from '../lib/multi_stream.mjs';
 import { RequestSession } from './request_session.mjs';
 
 export async function request({
@@ -53,15 +54,42 @@ export async function request({
         clientRequest.end();
       }
       
-      const { args: [ response ] } = await awaitEventOrError(clientRequest, ['response']);
+      const { eventName, args } = await awaitEventOrError(clientRequest, ['response', 'upgrade', 'connect']);
       
-      clientResponse = new ClientResponse({
-        headers: {
-          ':status': response.statusCode,
-          ...response.headers,
-        },
-        bodyStream: response,
-      });
+      switch (eventName) {
+        case 'response': {
+          const [ response ] = args;
+          
+          clientResponse = new ClientResponse({
+            headers: {
+              ':status': response.statusCode,
+              ...response.headers,
+            },
+            bodyStream: response,
+          });
+          break;
+        }
+        
+        case 'upgrade':
+        case 'connect': {
+          const [ response, socket, head ] = args;
+          
+          clientResponse = new ClientResponse({
+            headers: {
+              ':status': response.statusCode,
+              ...response.headers,
+            },
+            bodyStream: multiStream([
+              head,
+              socket,
+            ]),
+          });
+          break;
+        }
+        
+        default:
+          throw new Error(`default awaitEventOrError case not possible: ${eventName}`);
+      }
       break;
     }
     

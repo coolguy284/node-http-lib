@@ -4,7 +4,7 @@ export async function awaitEventOrError(eventEmitter, eventNames) {
     
     const successListener = (eventName, ...args) => {
       r({
-        event: eventName,
+        eventName,
         args,
       });
       
