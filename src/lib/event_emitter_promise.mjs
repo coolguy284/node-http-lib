@@ -1,16 +1,37 @@
-export async function awaitEventOrError(eventEmitter, eventName) {
+export async function awaitEventOrError(eventEmitter, eventNames) {
   return await new Promise((r, j) => {
-    const successListener = (...params) => {
-      r(params);
+    let successListeners = new Map();
+    
+    const successListener = (eventName, ...args) => {
+      r({
+        event: eventName,
+        args,
+      });
+      
       eventEmitter.off('error', errorListener);
+      
+      for (const [ successListenerEventName, singleSuccessListener ] of successListeners) {
+        if (eventName != successListenerEventName) {
+          eventEmitter.off(successListenerEventName, singleSuccessListener);
+        }
+      }
     };
     
     const errorListener = err => {
       j(err);
-      eventEmitter.off(eventName, successListener);
+      
+      for (const [ successListenerEventName, singleSuccessListener ] of successListeners) {
+        eventEmitter.off(successListenerEventName, singleSuccessListener);
+      }
     };
     
     eventEmitter.once('error', errorListener);
-    eventEmitter.once(eventName, successListener);
+    
+    for (const eventName of eventNames) {
+      const singleSuccessListener = successListener.bind(null, eventName);
+      
+      successListeners.set(eventName, singleSuccessListener);
+      eventEmitter.once(eventName, singleSuccessListener);
+    }
   });
 }

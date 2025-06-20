@@ -632,12 +632,12 @@ export class Server {
               if (firstInTlsComponent) {
                 tlsServer.listen(port, ip);
                 
-                await awaitEventOrError(tlsServer, 'listening');
+                await awaitEventOrError(tlsServer, ['listening']);
               }
             } else {
               server.listen(port, ip);
               
-              await awaitEventOrError(server, 'listening');
+              await awaitEventOrError(server, ['listening']);
             }
             break;
           

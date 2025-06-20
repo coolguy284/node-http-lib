@@ -7,7 +7,7 @@ export async function streamToBuffer(stream) {
     bufs.push(data);
   });
   
-  await awaitEventOrError(stream, 'end');
+  await awaitEventOrError(stream, ['end']);
   
   return Buffer.concat(bufs);
 }

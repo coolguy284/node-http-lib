@@ -27,11 +27,11 @@ export function getProcessedPath(clientRequestPath) {
 }
 
 async function awaitFileStreamReady(fileStream) {
-  await awaitEventOrError(fileStream, 'ready');
+  await awaitEventOrError(fileStream, ['ready']);
 }
 
 async function awaitFileStreamEnd(fileStream) {
-  await awaitEventOrError(fileStream, 'end');
+  await awaitEventOrError(fileStream, ['end']);
 }
 
 // https://stackoverflow.com/a/66164189

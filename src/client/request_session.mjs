@@ -18,7 +18,7 @@ export class RequestSession {
     } else {
       const session = connect(`https://${host.includes(':') ? `[${host}]` : host}:${port ?? 443}`, options);
       
-      await awaitEventOrError(session, 'connect');
+      await awaitEventOrError(session, ['connect']);
       
       this.#sessions.set(sessionIndex, session);
       

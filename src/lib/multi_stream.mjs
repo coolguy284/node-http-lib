@@ -6,11 +6,11 @@ import {
 import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 
 async function awaitStreamEnd(stream) {
-  await awaitEventOrError(stream, 'end');
+  await awaitEventOrError(stream, ['end']);
 }
 
 async function awaitStreamDrain(stream) {
-  await awaitEventOrError(stream, 'drain');
+  await awaitEventOrError(stream, ['drain']);
 }
 
 async function multiStreamProcessing(inputs, result) {
