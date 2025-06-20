@@ -751,6 +751,7 @@ export class Server {
       tlsServerCachedSessionTimeout,
     } of this.#instances) {
       if (mode == 'http' || mode == 'https') {
+        server.close();
         server.closeAllConnections();
         
         for (const socket of http1UpgradeAndConnectSockets) {

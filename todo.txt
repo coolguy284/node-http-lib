@@ -5,7 +5,6 @@ add http1 upgrade / connect support to client
 
 low prio:
 add docs to things
-test that server shutdown and destroy work
 serveProxy support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
