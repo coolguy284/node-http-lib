@@ -17,7 +17,7 @@ wsServer.on('connection', ws => {
   });
 });
 
-using server = new Server({
+await using server = new Server({
   instances: INSTANCES,
   requestListener: async serverRequest => {
     console.log(
