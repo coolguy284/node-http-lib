@@ -84,7 +84,10 @@ export async function request({
       const [ response ] = await awaitEventOrError(clientRequest, 'response');
       
       clientResponse = new ClientResponse({
-        headers: response.headers,
+        headers: {
+          ':status': response.statusCode,
+          ...response.headers,
+        },
         bodyStream: response,
       });
       break;

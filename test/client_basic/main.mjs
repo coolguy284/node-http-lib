@@ -13,8 +13,7 @@ import {
   
   console.log('http:');
   console.log(clientResponse.headers[':status']);
-  console.log(await clientResponse.getBodyAsBuffer());
-  console.log();
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
 {
@@ -23,12 +22,14 @@ import {
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
+    options: {
+      rejectUnauthorized: true,
+    },
   });
   
   console.log('https:');
   console.log(clientResponse.headers[':status']);
-  console.log(await clientResponse.getBodyAsBuffer());
-  console.log();
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
 {
@@ -40,12 +41,14 @@ import {
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
+    options: {
+      rejectUnauthorized: true,
+    },
   });
   
   console.log('http2:');
   console.log(clientResponse.headers[':status']);
-  console.log(await clientResponse.getBodyAsBuffer());
-  console.log();
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
 /*
@@ -58,11 +61,13 @@ import {
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
+    options: {
+      rejectUnauthorized: true,
+    },
   });
   
   console.log('http3:');
   console.log(clientResponse.headers[':status']);
-  console.log(await clientResponse.getBodyAsBuffer());
-  console.log();
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 */
