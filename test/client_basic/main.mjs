@@ -23,7 +23,7 @@ import {
     port: 8443,
     path: 'files/index.html',
     options: {
-      rejectUnauthorized: true,
+      rejectUnauthorized: false,
     },
   });
   
@@ -42,7 +42,7 @@ import {
     port: 8443,
     path: 'files/index.html',
     options: {
-      rejectUnauthorized: true,
+      rejectUnauthorized: false,
     },
   });
   
@@ -62,7 +62,7 @@ import {
     port: 8443,
     path: 'files/index.html',
     options: {
-      rejectUnauthorized: true,
+      rejectUnauthorized: false,
     },
   });
   
