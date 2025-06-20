@@ -1,6 +1,8 @@
+add http1 upgrade / connect support to client
+
+once nodejs updates:
 post-quantum tls support
 http3 support
-add http1 upgrade / connect support to client
 
 low prio:
 add docs to things
