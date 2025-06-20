@@ -730,6 +730,8 @@ export class Server {
     this.#gracefulShutdownPromises.clear();
     
     await Promise.all(finishPromises);
+    
+    this.#listening = false;
   }
   
   destroy() {
