@@ -7,12 +7,8 @@ import {
   const clientResponse = await request({
     mode: 'http',
     host: 'localhost',
-    port: 8080, // optional
+    port: 8080,
     path: 'files/index.html',
-    headers: {}, // optional
-    body: null, // optional
-    options: {}, // optional
-    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http:');
@@ -25,12 +21,8 @@ import {
   const clientResponse = await request({
     mode: 'https',
     host: 'localhost',
-    port: 8443, // optional
+    port: 8443,
     path: 'files/index.html',
-    headers: {}, // optional
-    body: null, // optional
-    options: {}, // optional
-    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('https:');
@@ -44,14 +36,10 @@ import {
   
   const clientResponse = await request({
     mode: 'http2',
-    //session, // optional
+    //session,
     host: 'localhost',
-    port: 8443, // optional
+    port: 8443,
     path: 'files/index.html',
-    headers: {}, // optional
-    body: null, // optional
-    options: {}, // optional
-    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http2:');
@@ -66,14 +54,10 @@ import {
   
   const clientResponse = await request({
     mode: 'http3',
-    //session, // optional
+    //session,
     host: 'localhost',
-    port: 8443, // optional
+    port: 8443,
     path: 'files/index.html',
-    headers: {}, // optional
-    body: null, // optional
-    options: {}, // optional
-    errorIfErrorStatusCode: true, // optional
   });
   
   console.log('http3:');
