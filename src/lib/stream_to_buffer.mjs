@@ -1,17 +1,13 @@
+import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+
 export async function streamToBuffer(stream) {
-  return await new Promise((r, j) => {
-    let bufs = [];
-    
-    stream.on('data', data => {
-      bufs.push(data);
-    });
-    
-    stream.once('end', () => {
-      r(Buffer.concat(bufs));
-    });
-    
-    stream.once('error', err => {
-      j(err);
-    });
+  let bufs = [];
+  
+  stream.on('data', data => {
+    bufs.push(data);
   });
+  
+  await awaitEventOrError(stream, 'end');
+  
+  return Buffer.concat(bufs);
 }

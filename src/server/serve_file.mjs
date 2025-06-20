@@ -7,6 +7,7 @@ import {
 
 import mime from 'mime';
 
+import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
 import { multiStream } from '../lib/multi_stream.mjs';
 import {
   serveFile_send400_generic,
@@ -26,37 +27,11 @@ export function getProcessedPath(clientRequestPath) {
 }
 
 async function awaitFileStreamReady(fileStream) {
-  return await new Promise((r, j) => {
-    const successListener = () => {
-      r();
-      fileStream.off('error', errorListener);
-    };
-    
-    const errorListener = err => {
-      j(err);
-      fileStream.off('ready', successListener);
-    };
-    
-    fileStream.once('error', errorListener);
-    fileStream.once('ready', successListener);
-  });
+  await awaitEventOrError(fileStream, 'ready');
 }
 
 async function awaitFileStreamEnd(fileStream) {
-  return await new Promise((r, j) => {
-    const successListener = () => {
-      r();
-      fileStream.off('error', errorListener);
-    };
-    
-    const errorListener = err => {
-      j(err);
-      fileStream.off('end', successListener);
-    };
-    
-    fileStream.once('error', errorListener);
-    fileStream.once('end', successListener);
-  });
+  await awaitEventOrError(fileStream, 'end');
 }
 
 // https://stackoverflow.com/a/66164189

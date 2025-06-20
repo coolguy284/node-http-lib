@@ -59,8 +59,12 @@ export async function request({
     case 'https':
       break;
     
-    case 'http2':
+    case 'http2': {
+      using connection = connect(`https://${host.includes(':') ? `[${host}]` : host}:${port}`, options);
+      
+      // TODO
       break;
+    }
     
     default:
       throw new Error(`mode unrecognized: ${JSON.stringify(mode)}`);

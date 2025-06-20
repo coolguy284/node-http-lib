@@ -3,38 +3,14 @@ import {
   Readable,
 } from 'node:stream';
 
+import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+
 async function awaitStreamEnd(stream) {
-  return await new Promise((r, j) => {
-    const successListener = () => {
-      r();
-      stream.off('error', errorListener);
-    };
-    
-    const errorListener = err => {
-      j(err);
-      stream.off('end', successListener);
-    };
-    
-    stream.once('error', errorListener);
-    stream.once('end', successListener);
-  });
+  await awaitEventOrError(stream, 'end');
 }
 
 async function awaitStreamDrain(stream) {
-  return await new Promise((r, j) => {
-    const successListener = () => {
-      r();
-      stream.off('error', errorListener);
-    };
-    
-    const errorListener = err => {
-      j(err);
-      stream.off('drain', successListener);
-    };
-    
-    stream.once('error', errorListener);
-    stream.once('drain', successListener);
-  });
+  await awaitEventOrError(stream, 'drain');
 }
 
 async function multiStreamProcessing(inputs, result) {
