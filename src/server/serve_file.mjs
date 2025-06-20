@@ -7,7 +7,7 @@ import {
 
 import mime from 'mime';
 
-import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 import { multiStream } from '../lib/multi_stream.mjs';
 import {
   serveFile_send400_generic,

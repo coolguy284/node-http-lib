@@ -1,4 +1,4 @@
-import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 
 export async function streamToBuffer(stream) {
   let bufs = [];

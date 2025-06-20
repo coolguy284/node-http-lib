@@ -7,10 +7,8 @@ export {
   VALID_REQUEST_PROTOS,
 } from './client/client-old.mjs';
 */
-export {
-  request,
-  RequestSession,
-} from './client/client.mjs';
+export { request } from './client/client.mjs';
+export { RequestSession } from './client/request_session.mjs';
 export { Server } from './server/server.mjs';
 export { serveFolder } from './server/serve_folder.mjs';
 export { serveFile } from './server/serve_file.mjs';

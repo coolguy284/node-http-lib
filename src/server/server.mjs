@@ -8,7 +8,7 @@ import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
 import { multiStream } from '../lib/multi_stream.mjs';
-import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 import { ServerRequest } from './server_request.mjs';
 
 function convertPossiblePseudoIPv6ToIPv4(ip) {

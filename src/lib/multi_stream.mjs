@@ -3,7 +3,7 @@ import {
   Readable,
 } from 'node:stream';
 
-import { awaitEventOrError } from '../lib/eventemitter_promise.mjs';
+import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 
 async function awaitStreamEnd(stream) {
   await awaitEventOrError(stream, 'end');
