@@ -26,19 +26,22 @@ export async function request({
   switch (mode) {
     case 'http':
     case 'https': {
-      let processedHeaders = Object.fromEntries(Object.entries(headers));
+      let processedHeaders = { ...headers };
       delete processedHeaders[':scheme'];
-      delete processedHeaders[':method'];
       
-      if (':authority' in headers) {
+      if (':authority' in processedHeaders) {
         processedHeaders.host = headers[':authority'];
         delete processedHeaders[':authority'];
       }
       
-      if (headers[':method'] == 'CONNECT' && ':protocol' in headers) {
+      if (processedHeaders[':method'] == 'CONNECT' && ':protocol' in processedHeaders) {
         processedHeaders[':method'] = 'GET';
-        processedHeaders.upgrade = headers[':protocol'];
+        processedHeaders.upgrade = processedHeaders[':protocol'];
       }
+      
+      const processedMethod = processedHeaders[':method'];
+      
+      delete processedHeaders[':method'];
       
       const requestFunc = mode == 'http' ? httpRequest : httpsRequest;
       
@@ -46,7 +49,7 @@ export async function request({
         host,
         port,
         path: `/${path}`,
-        method: headers[':method'],
+        method: processedMethod,
         headers: processedHeaders,
         ...options,
       });

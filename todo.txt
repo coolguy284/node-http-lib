@@ -4,7 +4,7 @@ http3 support
 
 low prio:
 serveProxy support
-  test http1 upgrade support for websocket, and possibly add a flushHeaders option to client request
+  test http1 upgrade support for websocket
 add docs to things
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
