@@ -81,22 +81,20 @@ export class Server {
         socket: req.socket,
       },
       respondFunc: (data, responseHeaders) => {
-        let status;
+        let status, processedResponseHeaders;
         
         if (responseHeaders == null) {
           status = 200;
-          responseHeaders = {
+          processedResponseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = responseHeaders[':status'];
-          responseHeaders = Object.fromEntries(
-            Object.entries(responseHeaders)
-              .filter(([ key, _ ]) => key != ':status')
-          );
+          processedResponseHeaders = { ...responseHeaders };
+          status = processedResponseHeaders[':status'];
+          delete processedResponseHeaders[':status'];
         }
         
-        res.writeHead(status, responseHeaders);
+        res.writeHead(status, processedResponseHeaders);
         
         if (data == null) {
           res.end();
@@ -144,24 +142,26 @@ export class Server {
         head,
       },
       respondFunc: (data, responseHeaders) => {
-        let status;
+        let status, processedResponseHeaders;
         
         if (responseHeaders == null) {
           status = 200;
-          responseHeaders = {
+          processedResponseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = responseHeaders[':status'];
-          responseHeaders = Object.fromEntries(
-            Object.entries(responseHeaders)
-              .filter(([ key, _ ]) => key != ':status')
-          );
+          processedResponseHeaders = { ...responseHeaders };
+          status = processedResponseHeaders[':status'];
+          delete processedResponseHeaders[':status'];
+          
+          if (status == 101) {
+            processedResponseHeaders.connection = 'keep-alive, Upgrade';
+          }
         }
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.entries(responseHeaders)
+          Object.entries(processedResponseHeaders)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );
@@ -210,24 +210,22 @@ export class Server {
         head,
       },
       respondFunc: (data, responseHeaders) => {
-        let status;
+        let status, processedResponseHeaders;
         
         if (responseHeaders == null) {
           status = 200;
-          responseHeaders = {
+          processedResponseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = responseHeaders[':status'];
-          responseHeaders = Object.fromEntries(
-            Object.entries(responseHeaders)
-              .filter(([ key, _ ]) => key != ':status')
-          );
+          processedResponseHeaders = { ...responseHeaders };
+          status = processedResponseHeaders[':status'];
+          delete processedResponseHeaders[':status'];
         }
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.entries(responseHeaders)
+          Object.entries(processedResponseHeaders)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );
