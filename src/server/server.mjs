@@ -72,7 +72,7 @@ export class Server {
       secure,
       pathString: req.url,
       headers: processedHeaders,
-      streamReadable: req,
+      bodyStream: req,
       server: this,
       internal: {
         mode: 'http1',
@@ -130,7 +130,7 @@ export class Server {
       secure,
       pathString: req.url,
       headers: processedHeaders,
-      streamReadable: multiStream([
+      bodyStream: multiStream([
         head,
         socket,
       ]),
@@ -198,7 +198,7 @@ export class Server {
       secure,
       pathHostnameString: req.url,
       headers: processedHeaders,
-      streamReadable: multiStream([
+      bodyStream: multiStream([
         head,
         socket,
       ]),
@@ -267,7 +267,7 @@ export class Server {
           }
       ),
       headers: processedHeaders,
-      streamReadable: stream,
+      bodyStream: stream,
       server: this,
       internal: {
         mode: 'http2',

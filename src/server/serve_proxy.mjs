@@ -7,13 +7,13 @@ export async function serveProxyStaticEndpoint({
 }) {
   const clientRequest = await request({
     headers: serverRequest.headers,
-    body: serverRequest.getBodyAsStream(),
+    body: serverRequest.bodyStream,
     errorIfErrorStatusCode,
     ...requestParameters,
   });
   
   serverRequest.respond(
-    clientRequest.getBodyAsStream(),
+    clientRequest.bodyStream,
     clientRequest.headers,
   );
 }

@@ -3,9 +3,8 @@ post-quantum tls support
 http3 support
 
 low prio:
-getBodyAsStream() -> bodyStream to show its not an autocreated object
+serveProxy: fix http1 upgrade support for websocket
 serveproxy graceful shutdown support
-serveProxy: test http1 upgrade support for websocket
 add docs to things
 add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
 servefs compression if file / file chunk above 256 bytes threshold, configurable

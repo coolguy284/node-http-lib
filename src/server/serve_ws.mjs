@@ -37,7 +37,7 @@ export function serveWebSocket({
           ':status': 101,
         },
       );
-      serverRequest.getBodyAsStream().pipe(serveWsEnd);
+      serverRequest.bodyStream.pipe(serveWsEnd);
     } else {
       if (!('sec-websocket-key' in headers)) {
         delete headers['sec-websocket-accept'];
@@ -50,14 +50,14 @@ export function serveWebSocket({
           ':status': 200,
         },
       );
-      serverRequest.getBodyAsStream().pipe(serveWsEnd);
+      serverRequest.bodyStream.pipe(serveWsEnd);
     }
     
     delete handleUpgradeEnd.write;
     delete handleUpgradeEnd.end;
     
     const gracefulShutdownPromise = new Promise(r => {
-      serverRequest.getBodyAsStream().once('close', () => {
+      serverRequest.bodyStream.once('close', () => {
         r();
         serverRequest.server.removeGracefulShutdownPromise(gracefulShutdownPromise);
       });
