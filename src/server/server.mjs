@@ -60,6 +60,7 @@ export class Server {
     headers[':method'] = req.method;
     headers[':authority'] = req.headers.host;
     delete headers.host;
+    delete headers.connection;
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
@@ -177,8 +178,6 @@ export class Server {
     headers[':method'] = 'CONNECT';
     headers[':authority'] = req.headers.host;
     delete headers.host;
-    headers[':protocol'] = req.headers.upgrade;
-    delete headers.upgrade;
     delete headers.connection;
     
     await this.#requestListener(ServerRequest.createNew({
