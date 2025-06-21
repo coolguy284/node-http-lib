@@ -23,10 +23,16 @@ export async function serveProxy({
   requestParameters,
   errorIfErrorStatusCode,
 }) {
+  let processedRequestParameters = { ...requestParameters };
+  
+  const pathPrefix = processedRequestParameters.pathPrefix ?? '';
+  
+  delete processedRequestParameters.pathPrefix;
+  
   await serveProxyStaticEndpoint({
     serverRequest,
     requestParameters: {
-      path: serverRequest.path,
+      path: pathPrefix + serverRequest.path,
       ...requestParameters,
     },
     errorIfErrorStatusCode,
