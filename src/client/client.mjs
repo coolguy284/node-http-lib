@@ -37,6 +37,7 @@ export async function request({
       if (processedHeaders[':method'] == 'CONNECT' && ':protocol' in processedHeaders) {
         processedHeaders[':method'] = 'GET';
         processedHeaders.upgrade = processedHeaders[':protocol'];
+        delete processedHeaders[':protocol'];
       }
       
       const processedMethod = processedHeaders[':method'];
