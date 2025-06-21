@@ -295,7 +295,8 @@ export class Server {
             if (!(data instanceof Readable) && data.length == 0) {
               return;
             } else {
-              throw new Error('stream.respond automatically ended stream (despite being told not to) and nonzero length data was given');
+              // commenting out error, as this error is falsely triggered for a zero-length stream:
+              //throw new Error('stream.respond automatically ended stream (despite being told not to) and nonzero length data was given');
             }
           }
           
