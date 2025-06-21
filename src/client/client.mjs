@@ -70,15 +70,19 @@ export async function request({
       
       const { eventName, args } = await awaitEventOrError(clientRequest, ['response', 'upgrade', 'connect']);
       
+      const [ response, ...otherArgs ] = args;
+      
+      let responseHeaders = {
+        ':status': response.statusCode,
+        ...response.headers,
+      };
+      
+      delete responseHeaders.connection;
+      
       switch (eventName) {
         case 'response': {
-          const [ response ] = args;
-          
           clientResponse = new ClientResponse({
-            headers: {
-              ':status': response.statusCode,
-              ...response.headers,
-            },
+            headers: responseHeaders,
             bodyStream: response,
           });
           break;
@@ -86,13 +90,10 @@ export async function request({
         
         case 'upgrade':
         case 'connect': {
-          const [ response, socket, head ] = args;
+          const [ socket, head ] = otherArgs;
           
           clientResponse = new ClientResponse({
-            headers: {
-              ':status': response.statusCode,
-              ...response.headers,
-            },
+            headers: responseHeaders,
             bodyStream: multiStream([
               head,
               socket,
