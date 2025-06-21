@@ -114,7 +114,7 @@ export class Server {
   async #handleHTTP1Upgrade({ listenerID, secure, req, socket, head }) {
     let processedHeaders = {
       ':scheme': secure ? 'https' : 'http',
-      ':method': req.method,
+      ':method': 'CONNECT',
       ':authority': req.headers.host,
       ':protocol': req.headers.upgrade,
       ...req.headers,
