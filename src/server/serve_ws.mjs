@@ -39,7 +39,10 @@ export function serveWebSocket({
       );
       serverRequest.getBodyAsStream().pipe(serveWsEnd);
     } else {
-      delete headers['sec-websocket-accept'];
+      if (!('sec-websocket-key' in headers)) {
+        delete headers['sec-websocket-accept'];
+      }
+      
       serverRequest.respond(
         serveWsEnd,
         {

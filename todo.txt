@@ -8,7 +8,6 @@ serveproxy graceful shutdown support
 serveProxy: test http1 upgrade support for websocket
 add docs to things
 add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
-passthrough sec-websocket-accept even through http2, for compatability with proxying
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 if-range support
 alter serverRequest to foster more explicit checking if serverRequest.path is a path or a full url
