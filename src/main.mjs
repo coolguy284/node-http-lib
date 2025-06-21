@@ -3,7 +3,10 @@ export { RequestSession } from './client/request_session.mjs';
 export { Server } from './server/server.mjs';
 export { serveFile } from './server/serve_file.mjs';
 export { serveFolder } from './server/serve_folder.mjs';
-export { serveProxy } from './server/serve_proxy.mjs';
+export {
+  serveProxy,
+  serveProxyStaticEndpoint,
+} from './server/serve_proxy.mjs';
 export { serveWebSocket } from './server/serve_ws.mjs';
 export {
   TLS_CONFIG_MORE_SECURE_1,
