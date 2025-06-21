@@ -308,7 +308,7 @@ export async function serveFile({
           contentLength += (
             `--${boundary}\r\n` +
             `content-type: ${contentType}\r\n` +
-            `content-range: ${start}-${end}/${stats.size}\r\n`
+            `content-range: ${start}-${end}/${stats.size}\r\n\r\n`
           ).length;
           
           contentLength += end - start + 1;
@@ -352,7 +352,7 @@ export async function serveFile({
               multiStreamSegments.push(
                 `--${boundary}\r\n` +
                 `content-type: ${contentType}\r\n` +
-                `content-range: ${start}-${end}/${stats.size}\r\n`
+                `content-range: ${start}-${end}/${stats.size}\r\n\r\n`
               );
               
               multiStreamSegments.push(fd.createReadStream({ start, end, autoClose: false }));
