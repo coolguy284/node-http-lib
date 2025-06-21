@@ -1,7 +1,10 @@
+import { streamToBuffer } from '../lib/stream_to_buffer.mjs';
+
 export class ServerRequest {
   // http1 upgrades are treated as CONNECT requests using the extended connect
   // protocol, regardless of the true request method
   #respondFunc;
+  #streamReadable; // stream.Readable
   listenerID;
   ipFamily; // 'IPv4' | 'IPv6'
   localAddress;
@@ -37,7 +40,6 @@ export class ServerRequest {
         rawHeaders: Array,
     }
   */
-  streamReadable; // stream.Readable
   server;
   internal;
   
@@ -126,10 +128,18 @@ export class ServerRequest {
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
     this.headers = headers;
-    this.streamReadable = streamReadable;
+    this.#streamReadable = streamReadable;
     this.server = server;
     this.internal = internal;
     this.#respondFunc = respondFunc;
+  }
+  
+  getBodyAsStream() {
+    return this.#streamReadable;
+  }
+  
+  async getBodyAsBuffer() {
+    return await streamToBuffer(this.getBodyAsStream());
   }
   
   pathMatch(pathStart) {
@@ -155,7 +165,7 @@ export class ServerRequest {
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
-      streamReadable: this.streamReadable,
+      streamReadable: this.#streamReadable,
       server: this.server,
       internal: this.internal,
       respondFunc: this.#respondFunc,

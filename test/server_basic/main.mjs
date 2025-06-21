@@ -50,7 +50,7 @@ await using server = new Server({
     } else if (serverRequest.path == 'file.txt') {
       serverRequest.respond(`plain text ${new Date().toISOString()}`);
     } else if (serverRequest.pathMatch('proxy_all/')) {
-      serveProxy({
+      await serveProxy({
         serverRequest: serverRequest.subRequest('proxy_all/'),
         requestParameters: {
           mode: PROXY_TARGET_INSTANCE.mode,
@@ -59,7 +59,7 @@ await using server = new Server({
         },
       });
     } else if (serverRequest.pathMatch('proxy_files/')) {
-      serveProxy({
+      await serveProxy({
         serverRequest: serverRequest.subRequest('proxy_files/'),
         requestParameters: {
           mode: PROXY_TARGET_INSTANCE.mode,
