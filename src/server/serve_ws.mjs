@@ -7,7 +7,9 @@ import { duplexPair } from 'node:stream';
 export function serveWebSocket({
   serverRequest,
   wsServer,
-  gracefulShutdownFunc = null,
+  gracefulShutdownFunc = ws => {
+    ws.close();
+  },
 }) {
   let [ serveWsEnd, handleUpgradeEnd ] = duplexPair();
   
@@ -108,7 +110,9 @@ export function serveWebSocket({
     Buffer.alloc(0),
     ws => {
       const processedGracefulShutdownFunc = () => {
-        gracefulShutdownFunc(ws);
+        if (gracefulShutdownFunc != null) {
+          gracefulShutdownFunc(ws);
+        }
       };
       
       serverRequest.server.addGracefulShutdownFunc(processedGracefulShutdownFunc);

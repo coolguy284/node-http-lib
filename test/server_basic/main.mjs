@@ -18,6 +18,8 @@ wsServer.on('connection', ws => {
   });
 });
 
+const PROXY_TARGET_INSTANCE = INSTANCES[0];
+
 await using server = new Server({
   instances: INSTANCES,
   requestListener: async serverRequest => {
@@ -44,32 +46,25 @@ await using server = new Server({
       serveWebSocket({
         serverRequest,
         wsServer,
-        gracefulShutdownFunc: ws => {
-          ws.close();
-        },
       });
     } else if (serverRequest.path == 'file.txt') {
       serverRequest.respond(`plain text ${new Date().toISOString()}`);
     } else if (serverRequest.pathMatch('proxy_all/')) {
-      const targetedInstance = INSTANCES[0];
-      
       serveProxy({
         serverRequest: serverRequest.subRequest('proxy_all/'),
         requestParameters: {
-          mode: targetedInstance.mode,
-          host: targetedInstance.ip,
-          port: targetedInstance.port,
+          mode: PROXY_TARGET_INSTANCE.mode,
+          host: PROXY_TARGET_INSTANCE.ip,
+          port: PROXY_TARGET_INSTANCE.port,
         },
       });
     } else if (serverRequest.pathMatch('proxy_files/')) {
-      const targetedInstance = INSTANCES[0];
-      
       serveProxy({
         serverRequest: serverRequest.subRequest('proxy_files/'),
         requestParameters: {
-          mode: targetedInstance.mode,
-          host: targetedInstance.ip,
-          port: targetedInstance.port,
+          mode: PROXY_TARGET_INSTANCE.mode,
+          host: PROXY_TARGET_INSTANCE.ip,
+          port: PROXY_TARGET_INSTANCE.port,
           pathPrefix: 'files/',
         },
       });
