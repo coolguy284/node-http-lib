@@ -244,6 +244,11 @@ export class Server {
     
     delete processedHeaders[':path'];
     
+    if (!(':authority' in processedHeaders) && 'host' in processedHeaders) {
+      processedHeaders[':authority'] = processedHeaders.host;
+      delete processedHeaders.host;
+    }
+    
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(stream.session.socket),
