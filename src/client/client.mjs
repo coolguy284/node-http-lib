@@ -17,6 +17,8 @@ export async function request({
   headers = {},
   body = null,
   options = {},
+  // only has significance in http1:
+  sendHeadersImmediately = true,
   errorIfErrorStatusCode = true,
 }) {
   let clientResponse;
@@ -43,6 +45,10 @@ export async function request({
         headers: processedHeaders,
         ...options,
       });
+      
+      if (sendHeadersImmediately) {
+        clientRequest.flushHeaders();
+      }
       
       if (body != null) {
         if (body instanceof Readable) {
