@@ -54,22 +54,22 @@ export class Server {
   #gracefulShutdownFuncs = new Set();
   
   async #handleHTTP1Request({ listenerID, secure, req, res }) {
-    let headers = {
+    let processedHeaders = {
       ':scheme': secure ? 'https' : 'http',
       ':method': req.method,
       ':authority': req.headers.host,
       ...req.headers,
     };
     
-    delete headers.host;
-    delete headers.connection;
+    delete processedHeaders.host;
+    delete processedHeaders.connection;
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(req.socket),
       secure,
       pathString: req.url,
-      headers,
+      headers: processedHeaders,
       streamReadable: req,
       server: this,
       internal: {
@@ -78,23 +78,23 @@ export class Server {
         res,
         socket: req.socket,
       },
-      respondFunc: (data, headers) => {
+      respondFunc: (data, responseHeaders) => {
         let status;
         
-        if (headers == null) {
+        if (responseHeaders == null) {
           status = 200;
-          headers = {
+          responseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = headers[':status'];
-          headers = Object.fromEntries(
-            Object.entries(headers)
+          status = responseHeaders[':status'];
+          responseHeaders = Object.fromEntries(
+            Object.entries(responseHeaders)
               .filter(([ key, _ ]) => key != ':status')
           );
         }
         
-        res.writeHead(status, headers);
+        res.writeHead(status, responseHeaders);
         
         if (data == null) {
           res.end();
@@ -110,7 +110,7 @@ export class Server {
   }
   
   async #handleHTTP1Upgrade({ listenerID, secure, req, socket, head }) {
-    let headers = {
+    let processedHeaders = {
       ':scheme': secure ? 'https' : 'http',
       ':method': req.method,
       ':authority': req.headers.host,
@@ -118,16 +118,16 @@ export class Server {
       ...req.headers,
     };
     
-    delete headers.host;
-    delete headers.upgrade;
-    delete headers.connection;
+    delete processedHeaders.host;
+    delete processedHeaders.upgrade;
+    delete processedHeaders.connection;
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
       secure,
       pathString: req.url,
-      headers,
+      headers: processedHeaders,
       streamReadable: multiStream([
         head,
         socket,
@@ -139,25 +139,25 @@ export class Server {
         socket,
         head,
       },
-      respondFunc: (data, headers) => {
+      respondFunc: (data, responseHeaders) => {
         let status;
         
-        if (headers == null) {
+        if (responseHeaders == null) {
           status = 200;
-          headers = {
+          responseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = headers[':status'];
-          headers = Object.fromEntries(
-            Object.entries(headers)
+          status = responseHeaders[':status'];
+          responseHeaders = Object.fromEntries(
+            Object.entries(responseHeaders)
               .filter(([ key, _ ]) => key != ':status')
           );
         }
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.entries(headers)
+          Object.entries(responseHeaders)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );
@@ -176,22 +176,22 @@ export class Server {
   }
   
   async #handleHTTP1Connect({ listenerID, secure, req, socket, head }) {
-    let headers = {
+    let processedHeaders = {
       ':scheme': secure ? 'https' : 'http',
       ':method': req.method,
       ':authority': req.headers.host,
       ...req.headers,
     };
     
-    delete headers.host;
-    delete headers.connection;
+    delete processedHeaders.host;
+    delete processedHeaders.connection;
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
       secure,
       pathHostnameString: req.url,
-      headers,
+      headers: processedHeaders,
       streamReadable: multiStream([
         head,
         socket,
@@ -203,25 +203,25 @@ export class Server {
         socket,
         head,
       },
-      respondFunc: (data, headers) => {
+      respondFunc: (data, responseHeaders) => {
         let status;
         
-        if (headers == null) {
+        if (responseHeaders == null) {
           status = 200;
-          headers = {
+          responseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         } else {
-          status = headers[':status'];
-          headers = Object.fromEntries(
-            Object.entries(headers)
+          status = responseHeaders[':status'];
+          responseHeaders = Object.fromEntries(
+            Object.entries(responseHeaders)
               .filter(([ key, _ ]) => key != ':status')
           );
         }
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
-          Object.entries(headers)
+          Object.entries(responseHeaders)
             .map(([ key, value ]) => `${key}: ${value}`)
             .join('\r\n') + '\r\n\r\n'
         );
@@ -273,17 +273,17 @@ export class Server {
         rawHeaders,
         socket: stream.session.socket,
       },
-      respondFunc: (data, headers) => {
-        if (headers == null) {
-          headers = {
+      respondFunc: (data, responseHeaders) => {
+        if (responseHeaders == null) {
+          responseHeaders = {
             'content-type': 'text/plain; charset=utf-8',
           };
         }
         
         if (data == null) {
-          stream.respond(headers, { endStream: true });
+          stream.respond(responseHeaders, { endStream: true });
         } else {
-          stream.respond(headers, { endStream: false });
+          stream.respond(responseHeaders, { endStream: false });
           
           if (!stream.writable) {
             if (!(data instanceof Readable) && data.length == 0) {
