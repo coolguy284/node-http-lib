@@ -35,6 +35,11 @@ export async function request({
         delete processedHeaders[':authority'];
       }
       
+      if (headers[':method'] == 'CONNECT' && ':protocol' in headers) {
+        processedHeaders[':method'] = 'GET';
+        processedHeaders.upgrade = headers[':protocol'];
+      }
+      
       const requestFunc = mode == 'http' ? httpRequest : httpsRequest;
       
       const clientRequest = requestFunc({
@@ -112,6 +117,8 @@ export async function request({
         ':path': `/${path}`,
         ...headers,
       };
+      
+      delete processedHeaders.connection;
       
       const stream = connection.request(processedHeaders, options);
       
