@@ -64,6 +64,7 @@ export class Server {
     delete processedHeaders.host;
     delete processedHeaders.connection;
     delete processedHeaders['keep-alive'];
+    delete processedHeaders['transfer-encoding'];
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
@@ -123,6 +124,7 @@ export class Server {
     delete processedHeaders.upgrade;
     delete processedHeaders.connection;
     delete processedHeaders['keep-alive'];
+    delete processedHeaders['transfer-encoding'];
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
@@ -188,6 +190,7 @@ export class Server {
     delete processedHeaders.host;
     delete processedHeaders.connection;
     delete processedHeaders['keep-alive'];
+    delete processedHeaders['transfer-encoding'];
     
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
