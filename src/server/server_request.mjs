@@ -161,7 +161,7 @@ export class ServerRequest {
       remoteAddress: this.remoteAddress,
       remotePort: this.remotePort,
       pathIsHostname: this.pathIsHostname,
-      path: this.path.slice(pathStart.length - 1),
+      path: this.path.slice(pathStart.length),
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
