@@ -238,17 +238,6 @@ export async function serveFile({
             };
           });
       
-      if (ranges.length > 1) {
-        // reject multipart range requests for now
-        await serveFile_send416({
-          serverRequest,
-          processedPath,
-          serve416,
-          additionalHeaders,
-        });
-        return;
-      }
-      
       for (const { start, end } of ranges) {
         if (start == null && end == null) {
           // invalid

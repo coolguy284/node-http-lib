@@ -5,6 +5,7 @@ http3 support
 low prio:
 serveProxy: fix http1 upgrade support for websocket
 serveproxy graceful shutdown support
+ensure all plaintext error responses have content-type header set
 add docs to things
 add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
 servefs compression if file / file chunk above 256 bytes threshold, configurable
