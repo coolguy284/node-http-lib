@@ -73,6 +73,9 @@ await using server = new Server({
           mode: INSTANCES[1].mode,
           host: INSTANCES[1].ip,
           port: INSTANCES[1].port,
+          options: {
+            rejectUnauthorized: false,
+          },
         },
       });
     } else if (serverRequest.pathMatch('proxy_all_http2/')) {
@@ -82,6 +85,9 @@ await using server = new Server({
           mode: INSTANCES[2].mode,
           host: INSTANCES[2].ip,
           port: INSTANCES[2].port,
+          options: {
+            rejectUnauthorized: false,
+          },
         },
       });
     } /*else if (serverRequest.pathMatch('proxy_all_http3/')) {
@@ -91,6 +97,9 @@ await using server = new Server({
           mode: INSTANCES[3].mode,
           host: INSTANCES[3].ip,
           port: INSTANCES[3].port,
+          options: {
+            rejectUnauthorized: false,
+          },
         },
       });
     }*/ else {
