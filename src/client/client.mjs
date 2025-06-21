@@ -38,6 +38,7 @@ export async function request({
         processedHeaders[':method'] = 'GET';
         processedHeaders.upgrade = processedHeaders[':protocol'];
         delete processedHeaders[':protocol'];
+        processedHeaders.connection = 'keep-alive, Upgrade';
       }
       
       const processedMethod = processedHeaders[':method'];
