@@ -1,6 +1,6 @@
 import {
   request,
-  //RequestSession,
+  RequestSession,
 } from '../../src/main.mjs';
 
 {
@@ -33,11 +33,8 @@ import {
 }
 
 {
-  //using session = new RequestSession();
-  
   const clientResponse = await request({
     mode: 'http2',
-    //session,
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
@@ -46,18 +43,34 @@ import {
     },
   });
   
-  console.log('http2:');
+  console.log('http2 (no session):');
+  console.log(clientResponse.headers[':status']);
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
+}
+
+{
+  using session = new RequestSession();
+  
+  const clientResponse = await request({
+    mode: 'http2',
+    session,
+    host: 'localhost',
+    port: 8443,
+    path: 'files/index.html',
+    options: {
+      rejectUnauthorized: false,
+    },
+  });
+  
+  console.log('http2 (session):');
   console.log(clientResponse.headers[':status']);
   console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
 /*
 {
-  //using session = new RequestSession();
-  
   const clientResponse = await request({
     mode: 'http3',
-    //session,
     host: 'localhost',
     port: 8443,
     path: 'files/index.html',
@@ -66,7 +79,26 @@ import {
     },
   });
   
-  console.log('http3:');
+  console.log('http3 (no session):');
+  console.log(clientResponse.headers[':status']);
+  console.log((await clientResponse.getBodyAsBuffer()).toString());
+}
+
+{
+  using session = new RequestSession();
+  
+  const clientResponse = await request({
+    mode: 'http3',
+    session,
+    host: 'localhost',
+    port: 8443,
+    path: 'files/index.html',
+    options: {
+      rejectUnauthorized: false,
+    },
+  });
+  
+  console.log('http3 (session):');
   console.log(clientResponse.headers[':status']);
   console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
