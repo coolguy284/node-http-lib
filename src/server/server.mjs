@@ -388,8 +388,6 @@ export class Server {
           return;
         }
         
-        tlsSocket.setNoDelay(true);
-        
         if (tlsSocket.alpnProtocol == false || tlsSocket.alpnProtocol == 'http/1.1') {
           // http/1.1
           if (serverIsHttp2) {
