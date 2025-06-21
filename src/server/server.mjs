@@ -54,11 +54,13 @@ export class Server {
   #gracefulShutdownFuncs = new Set();
   
   async #handleHTTP1Request({ listenerID, secure, req, res }) {
-    let headers = Object.fromEntries(Object.entries(req.headers));
+    let headers = {
+      ':scheme': secure ? 'https' : 'http',
+      ':method': req.method,
+      ':authority': req.headers.host,
+      ...req.headers,
+    };
     
-    headers[':scheme'] = secure ? 'https' : 'http';
-    headers[':method'] = req.method;
-    headers[':authority'] = req.headers.host;
     delete headers.host;
     delete headers.connection;
     
@@ -108,13 +110,15 @@ export class Server {
   }
   
   async #handleHTTP1Upgrade({ listenerID, secure, req, socket, head }) {
-    let headers = Object.fromEntries(Object.entries(req.headers));
+    let headers = {
+      ':scheme': secure ? 'https' : 'http',
+      ':method': req.method,
+      ':authority': req.headers.host,
+      ':protocol': req.headers.upgrade,
+      ...req.headers,
+    };
     
-    headers[':scheme'] = secure ? 'https' : 'http';
-    headers[':method'] = 'CONNECT';
-    headers[':authority'] = req.headers.host;
     delete headers.host;
-    headers[':protocol'] = req.headers.upgrade;
     delete headers.upgrade;
     delete headers.connection;
     
@@ -172,11 +176,13 @@ export class Server {
   }
   
   async #handleHTTP1Connect({ listenerID, secure, req, socket, head }) {
-    let headers = Object.fromEntries(Object.entries(req.headers));
+    let headers = {
+      ':scheme': secure ? 'https' : 'http',
+      ':method': req.method,
+      ':authority': req.headers.host,
+      ...req.headers,
+    };
     
-    headers[':scheme'] = secure ? 'https' : 'http';
-    headers[':method'] = 'CONNECT';
-    headers[':authority'] = req.headers.host;
     delete headers.host;
     delete headers.connection;
     
@@ -234,7 +240,7 @@ export class Server {
   }
   
   async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders }) {
-    let processedHeaders = Object.fromEntries(Object.entries(headers));
+    let processedHeaders = { ...headers };
     
     delete processedHeaders[':path'];
     
