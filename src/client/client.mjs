@@ -78,6 +78,7 @@ export async function request({
       };
       
       delete responseHeaders.connection;
+      delete responseHeaders['keep-alive'];
       
       switch (eventName) {
         case 'response': {
@@ -123,6 +124,7 @@ export async function request({
       };
       
       delete processedHeaders.connection;
+      delete processedHeaders['keep-alive'];
       
       const stream = connection.request(processedHeaders, options);
       
