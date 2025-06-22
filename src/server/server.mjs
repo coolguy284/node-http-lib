@@ -181,7 +181,6 @@ export class Server {
   
   async #handleHTTP1Connect({ listenerID, secure, req, socket, head }) {
     let processedHeaders = {
-      ':scheme': secure ? 'https' : 'http',
       ':method': req.method,
       ':authority': req.headers.host,
       ...req.headers,

@@ -1,15 +1,15 @@
+serveproxy graceful shutdown support
+ensure all plaintext error responses have content-type header set
+
 once nodejs updates:
 post-quantum tls support
 http3 support
 
 low prio:
 custom object support in serverrequest
-serveProxy: fix http1 upgrade support for websocket
-serveproxy graceful shutdown support
-ensure all plaintext error responses have content-type header set
 add docs to things
 add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
 servefs compression if file / file chunk above 256 bytes threshold, configurable
-if-range support
+servefs if-range support
 alter serverRequest to foster more explicit checking if serverRequest.path is a path or a full url
 http1 session support with connection reuse
