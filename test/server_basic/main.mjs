@@ -35,6 +35,8 @@ await using server = new Server({
         serverRequest,
         fsPath: 'index.html',
       });
+    } else if (serverRequest.path == 'files/form.html' && serverRequest.headers[':method'] == 'POST') {
+      serverRequest.respond(`You sent: ${(await serverRequest.getBodyAsBuffer()).toString()}`);
     } else if (serverRequest.pathMatch('files/')) {
       await serveFolder({
         serverRequest: serverRequest.subRequest('files/'),

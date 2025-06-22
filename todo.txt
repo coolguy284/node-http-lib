@@ -3,6 +3,7 @@ post-quantum tls support
 http3 support
 
 low prio:
+custom object support in serverrequest
 serveProxy: fix http1 upgrade support for websocket
 serveproxy graceful shutdown support
 ensure all plaintext error responses have content-type header set
