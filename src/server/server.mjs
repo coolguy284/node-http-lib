@@ -49,6 +49,7 @@ function getIPObject({
 export class Server {
   #instances;
   #requestListener;
+  #closeForceDestroyTimeoutMS;
   #listening = false;
   #gracefulShutdownPromises = new Set();
   #gracefulShutdownFuncs = new Set();
@@ -511,6 +512,7 @@ export class Server {
   constructor({
     instances,
     requestListener,
+    closeForceDestroyTimeoutMS = Infinity,
   }) {
     this.#instances = instances.map(instance => {
       let newInstance = Object.fromEntries(Object.entries(instance));
@@ -616,6 +618,7 @@ export class Server {
     }
     
     this.#requestListener = requestListener;
+    this.#closeForceDestroyTimeoutMS = closeForceDestroyTimeoutMS;
   }
   
   addGracefulShutdownFunc(gracefulShutdownFunc) {
@@ -667,7 +670,7 @@ export class Server {
     this.#listening = true;
   }
   
-  async close() {
+  async #close() {
     if (!this.#listening) {
       return;
     }
@@ -749,6 +752,25 @@ export class Server {
     await Promise.all(finishPromises);
     
     this.#listening = false;
+  }
+  
+  async close() {
+    if (this.#closeForceDestroyTimeoutMS <= 0) {
+      this.destroy();
+    } else if (this.#closeForceDestroyTimeoutMS < Infinity) {
+      const destroyTimeout = setTimeout(
+        () => {
+          this.destroy();
+        },
+        this.#closeForceDestroyTimeoutMS,
+      ).unref();
+      
+      await this.#close();
+      
+      clearTimeout(destroyTimeout);
+    } else {
+      await this.#close();
+    }
   }
   
   destroy() {
