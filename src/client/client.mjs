@@ -103,6 +103,9 @@ export async function request({
               socket,
             ]),
           });
+          
+          body.unpipe(clientRequest);
+          body.pipe(socket);
           break;
         }
         
