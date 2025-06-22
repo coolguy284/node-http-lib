@@ -749,9 +749,17 @@ export class Server {
     
     this.#gracefulShutdownPromises.clear();
     
-    await Promise.all(finishPromises);
-    
-    this.#listening = false;
+    try {
+      const finishPromiseResults = await Promise.allSettled(finishPromises);
+      
+      for (const { status, reason } of finishPromiseResults) {
+        if (status == 'rejected') {
+          throw reason;
+        }
+      }
+    } finally {
+      this.#listening = false;
+    }
   }
   
   async close() {
