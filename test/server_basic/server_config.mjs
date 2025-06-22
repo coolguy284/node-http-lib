@@ -32,7 +32,9 @@ export const INSTANCES = [
     ip: 'localhost',
     port: 8443,
     options: {
-      enableConnectProtocol: true,
+      settings: {
+        enableConnectProtocol: true,
+      },
     },
   },
   /*{
