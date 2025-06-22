@@ -29,29 +29,21 @@ export function serveWebSocket({
         })
     );
     
-    if (serverRequest.internal.mode == 'http1-upgrade') {
-      serverRequest.respond(
-        serveWsEnd,
-        {
-          ...headers,
-          ':status': 101,
-        },
-      );
-      serverRequest.bodyStream.pipe(serveWsEnd);
-    } else {
-      if (!('sec-websocket-key' in headers)) {
-        delete headers['sec-websocket-accept'];
-      }
-      
-      serverRequest.respond(
-        serveWsEnd,
-        {
-          ...headers,
-          ':status': 200,
-        },
-      );
-      serverRequest.bodyStream.pipe(serveWsEnd);
+    if (!('sec-websocket-key' in headers)) {
+      delete headers['sec-websocket-accept'];
     }
+    
+    serverRequest.respond(
+      serveWsEnd,
+      {
+        ...headers,
+        ':status':
+          serverRequest.internal.mode == 'http1-upgrade' ?
+            101 :
+            200,
+      },
+    );
+    serverRequest.bodyStream.pipe(serveWsEnd);
     
     delete handleUpgradeEnd.write;
     delete handleUpgradeEnd.end;
