@@ -29,7 +29,7 @@ export function serveWebSocket({
         })
     );
     
-    if (!('sec-websocket-key' in headers)) {
+    if (!('sec-websocket-key' in serverRequest.headers)) {
       delete headers['sec-websocket-accept'];
     }
     
