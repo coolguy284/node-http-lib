@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { TLS_CONFIG_MORE_SECURE_2 } from '../../src/server/tls_configs.mjs';
+import { TLS_CONFIG_MORE_SECURE_2 } from '../../src/main.mjs';
 
 const TLS_OPTIONS = {
   ...TLS_CONFIG_MORE_SECURE_2,
