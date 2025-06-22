@@ -114,6 +114,10 @@ await server.listen();
 
 console.log('Server active');
 
+process.on('uncaughtException', err => {
+  console.error(`Uncaught exception:\n${err.stack}`);
+});
+
 await new Promise(r => {
   process.once('SIGINT', () => r());
 });
