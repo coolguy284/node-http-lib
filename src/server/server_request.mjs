@@ -4,7 +4,6 @@ export class ServerRequest {
   // http1 upgrades are treated as CONNECT requests using the extended connect
   // protocol, regardless of the true request method
   #respondFunc;
-  bodyStream; // stream.Readable
   listenerID;
   ipFamily; // 'IPv4' | 'IPv6'
   localAddress;
@@ -40,6 +39,8 @@ export class ServerRequest {
         rawHeaders: Array,
     }
   */
+  secure;
+  bodyStream; // stream.Readable
   server;
   internal;
   
@@ -53,6 +54,7 @@ export class ServerRequest {
     pathString,
     pathHostnameString,
     headers,
+    secure,
     bodyStream,
     server,
     internal,
@@ -93,6 +95,7 @@ export class ServerRequest {
       pathSearchParams,
       pathRaw: pathString,
       headers,
+      secure,
       bodyStream,
       server,
       internal,
@@ -112,6 +115,7 @@ export class ServerRequest {
     pathSearchParams,
     pathRaw,
     headers,
+    secure,
     bodyStream,
     server,
     internal,
@@ -128,6 +132,7 @@ export class ServerRequest {
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
     this.headers = headers;
+    this.secure = secure;
     this.bodyStream = bodyStream;
     this.server = server;
     this.internal = internal;
@@ -161,6 +166,7 @@ export class ServerRequest {
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
+      secure: this.secure,
       bodyStream: this.bodyStream,
       server: this.server,
       internal: this.internal,
