@@ -156,6 +156,7 @@ export class Server {
           
           if (status == 101) {
             processedResponseHeaders.connection = 'keep-alive, Upgrade';
+            processedResponseHeaders.upgrade = processedHeaders[':protocol'];
           }
         }
         
@@ -257,7 +258,7 @@ export class Server {
       ...getIPObject(stream.session.socket),
       secure,
       ...(
-        headers[':method'] == 'CONNECT' ?
+        headers[':method'] == 'CONNECT' && !(':protocol' in headers) ?
           {
             pathHostnameString: headers[':path'],
           } :

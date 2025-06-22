@@ -33,6 +33,9 @@ export function serveWebSocket({
       delete headers['sec-websocket-accept'];
     }
     
+    delete headers.connection;
+    delete headers.upgrade;
+    
     serverRequest.respond(
       serveWsEnd,
       {
