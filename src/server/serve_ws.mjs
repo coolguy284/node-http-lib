@@ -40,10 +40,7 @@ export function serveWebSocket({
       serveWsEnd,
       {
         ...headers,
-        ':status':
-          serverRequest.internal.mode == 'http1-upgrade' ?
-            101 :
-            200,
+        ':status': 200,
       },
     );
     serverRequest.bodyStream.pipe(serveWsEnd);

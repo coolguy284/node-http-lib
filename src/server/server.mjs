@@ -154,6 +154,10 @@ export class Server {
           status = processedResponseHeaders[':status'];
           delete processedResponseHeaders[':status'];
           
+          if (status == 200) {
+            status = 101;
+          }
+          
           if (status == 101) {
             processedResponseHeaders.connection = 'keep-alive, Upgrade';
             processedResponseHeaders.upgrade = processedHeaders[':protocol'];

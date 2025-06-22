@@ -1,4 +1,3 @@
-fix http2 proxy ws not working
 serveproxy graceful shutdown support
 ensure all plaintext error responses have content-type header set
 

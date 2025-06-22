@@ -96,6 +96,14 @@ export async function request({
         case 'connect': {
           const [ socket, head ] = otherArgs;
           
+          if (eventName == 'upgrade') {
+            if (responseHeaders[':status'] == 101) {
+              responseHeaders[':status'] = 200;
+            }
+            
+            delete responseHeaders.upgrade;
+          }
+          
           clientResponse = new ClientResponse({
             headers: responseHeaders,
             bodyStream: multiStream([
