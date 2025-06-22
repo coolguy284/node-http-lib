@@ -16,6 +16,18 @@
     <script type = 'module'>
       const ws = new WebSocket('../ws');
       
+      ws.addEventListener('open', evt => {
+        websocket_results.innerText += 'websocket opened\n';
+      });
+      
+      ws.addEventListener('close', evt => {
+        websocket_results.innerText += 'websocket closed\n';
+      });
+      
+      ws.addEventListener('error', evt => {
+        websocket_results.innerText += `websocket closed due to error:\n${evt.toString()}\n`;
+      });
+      
       ws.addEventListener('message', evt => {
         websocket_results.innerText += evt.data + '\n';
       });
