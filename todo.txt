@@ -5,10 +5,10 @@ post-quantum tls support
 http3 support
 
 low prio:
-custom object support in serverrequest
-add docs to things
 add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
 servefs compression if file / file chunk above 256 bytes threshold, configurable
+custom object support in serverrequest
+add docs to things
 servefs if-range support
 alter serverRequest to foster more explicit checking if serverRequest.path is a path or a full url
 http1 session support with connection reuse
