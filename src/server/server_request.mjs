@@ -78,7 +78,13 @@ export class ServerRequest {
       } catch { /* empty */ }
       
       if (pathUrl != null) {
-        path = decodeURIComponent(pathUrl.pathname).slice(1);
+        try {
+          path = decodeURIComponent(pathUrl.pathname);
+        } catch {
+          path = pathUrl.pathname;
+        }
+        
+        path = path.slice(1);
         pathSearchParams = pathUrl.searchParams;
       }
     }

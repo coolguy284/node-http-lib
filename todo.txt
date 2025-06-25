@@ -1,4 +1,3 @@
-fix malformed url https://localhost:8443/files/space%%20file.html from causing uncaught exception
 ensure all plaintext error responses have content-type header set
 
 once nodejs updates:
