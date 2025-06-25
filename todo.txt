@@ -1,5 +1,3 @@
-servefs extraheaders is func instead
-
 once nodejs updates:
 post-quantum tls support
 http3 support
