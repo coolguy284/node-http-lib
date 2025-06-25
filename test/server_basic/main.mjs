@@ -22,7 +22,7 @@ await using server = new Server({
   instances: INSTANCES,
   requestListener: async serverRequest => {
     console.log(
-      `[${new Date().toISOString()}] ${serverRequest.listenerID} ${serverRequest.ipFamily} [${serverRequest.remoteAddress}]:${serverRequest.remotePort} ${serverRequest.headers[':method']} /${serverRequest.path}`
+      `[${new Date().toISOString()}] ${serverRequest.listenerID} ${serverRequest.ipFamily} [${serverRequest.remoteAddress}]:${serverRequest.remotePort} ${serverRequest.headers[':method'] == 'CONNECT' && ':protocol' in serverRequest.headers ? `CONNECT[${serverRequest.headers[':protocol']}]` : serverRequest.headers[':method']} /${serverRequest.path}`
     );
     
     if (serverRequest.pathIsHostname) {
