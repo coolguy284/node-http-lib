@@ -26,7 +26,7 @@ await using server = new Server({
     );
     
     if (serverRequest.pathIsHostname) {
-      serverRequest.respond('Error: connect requests unsupported', { ':status': 405 });
+      serverRequest.respond('Error: connect requests unsupported', 405);
       return;
     }
     
@@ -105,7 +105,7 @@ await using server = new Server({
         },
       });
     }*/ else {
-      serverRequest.respond('Error: path not found', { ':status': 404 });
+      serverRequest.respond('Error: path not found', 404);
     }
   },
 });
