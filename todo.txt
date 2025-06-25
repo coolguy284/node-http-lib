@@ -1,4 +1,5 @@
 ensure all plaintext error responses have content-type header set
+servefs extraheaders is func instead
 
 once nodejs updates:
 post-quantum tls support

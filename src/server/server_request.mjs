@@ -182,9 +182,21 @@ export class ServerRequest {
   
   /*
     data: string | Buffer | Stream,
-    headers: Object | null,
+    responseHeaders: Object | integer | null,
   */
-  respond(data, headers) {
-    this.#respondFunc(data, headers);
+  respond(data, responseHeaders) {
+    if (responseHeaders == null) {
+      responseHeaders = {
+        ':status': 200,
+        'content-type': 'text/plain; charset=utf-8',
+      };
+    } else if (Number.isSafeInteger(responseHeaders)) {
+      responseHeaders = {
+        ':status': responseHeaders,
+        'content-type': 'text/plain; charset=utf-8',
+      };
+    }
+    
+    this.#respondFunc(data, responseHeaders);
   }
 }

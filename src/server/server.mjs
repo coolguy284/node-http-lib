@@ -84,16 +84,9 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        if (responseHeaders == null) {
-          status = 200;
-          processedResponseHeaders = {
-            'content-type': 'text/plain; charset=utf-8',
-          };
-        } else {
-          processedResponseHeaders = { ...responseHeaders };
-          status = processedResponseHeaders[':status'];
-          delete processedResponseHeaders[':status'];
-        }
+        processedResponseHeaders = { ...responseHeaders };
+        status = processedResponseHeaders[':status'];
+        delete processedResponseHeaders[':status'];
         
         res.writeHead(status, processedResponseHeaders);
         
@@ -145,24 +138,17 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        if (responseHeaders == null) {
-          status = 200;
-          processedResponseHeaders = {
-            'content-type': 'text/plain; charset=utf-8',
-          };
-        } else {
-          processedResponseHeaders = { ...responseHeaders };
-          status = processedResponseHeaders[':status'];
-          delete processedResponseHeaders[':status'];
-          
-          if (status == 200) {
-            status = 101;
-          }
-          
-          if (status == 101) {
-            processedResponseHeaders.connection = 'keep-alive, Upgrade';
-            processedResponseHeaders.upgrade = processedHeaders[':protocol'];
-          }
+        processedResponseHeaders = { ...responseHeaders };
+        status = processedResponseHeaders[':status'];
+        delete processedResponseHeaders[':status'];
+        
+        if (status == 200) {
+          status = 101;
+        }
+        
+        if (status == 101) {
+          processedResponseHeaders.connection = 'keep-alive, Upgrade';
+          processedResponseHeaders.upgrade = processedHeaders[':protocol'];
         }
         
         socket.write(
@@ -217,16 +203,9 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        if (responseHeaders == null) {
-          status = 200;
-          processedResponseHeaders = {
-            'content-type': 'text/plain; charset=utf-8',
-          };
-        } else {
-          processedResponseHeaders = { ...responseHeaders };
-          status = processedResponseHeaders[':status'];
-          delete processedResponseHeaders[':status'];
-        }
+        processedResponseHeaders = { ...responseHeaders };
+        status = processedResponseHeaders[':status'];
+        delete processedResponseHeaders[':status'];
         
         socket.write(
           `HTTP/1.1 ${status} ${STATUS_CODES[status]}\r\n` +
@@ -283,12 +262,6 @@ export class Server {
         socket: stream.session.socket,
       },
       respondFunc: (data, responseHeaders) => {
-        if (responseHeaders == null) {
-          responseHeaders = {
-            'content-type': 'text/plain; charset=utf-8',
-          };
-        }
-        
         if (data == null) {
           stream.respond(responseHeaders, { endStream: true });
         } else {
