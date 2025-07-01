@@ -22,22 +22,26 @@ export async function serveProxyStaticEndpoint({
     clientRequest.headers,
   );
   
-  const gracefulShutdownPromiseInternal = Promise.all([
-    awaitEventOrError(serverRequest.bodyStream, ['close']),
-    awaitEventOrError(clientRequest.bodyStream, ['close']),
-  ]);
-  
-  const gracefulShutdownPromise = new Promise(
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-    async r => {
-      try {
-        await gracefulShutdownPromiseInternal;
-      } finally {
-        r();
-        serverRequest.server.removeGracefulShutdownPromise(gracefulShutdownPromise);
+  const gracefulShutdownPromiseInternal = (async () => {
+    const results = await Promise.allSettled([
+      awaitEventOrError(serverRequest.bodyStream, ['close']),
+      awaitEventOrError(clientRequest.bodyStream, ['close']),
+    ]);
+    
+    for (const { status, reason } of results) {
+      if (status == 'rejected') {
+        throw reason;
       }
     }
-  );
+  })();
+  
+  const gracefulShutdownPromise = (async () => {
+    try {
+      await gracefulShutdownPromiseInternal;
+    } finally {
+      serverRequest.server.removeGracefulShutdownPromise(gracefulShutdownPromise);
+    }
+  })();
   
   serverRequest.server.addGracefulShutdownPromise(gracefulShutdownPromise);
   
