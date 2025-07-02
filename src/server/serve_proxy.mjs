@@ -17,7 +17,6 @@ export async function serveProxyStaticEndpoint({
   sendForwardedHeader = false,
   sendXForwardedHeaders = false,
   forwardingSendBy = false,
-  forwardingByDefault = null,
   forwardingSendFor = false,
   forwardingSendHost = false,
   forwardingSendProto = false,
@@ -163,19 +162,19 @@ export async function serveProxyStaticEndpoint({
           .map(headerSegment => {
             let processedHeaderSegment = [];
             
-            if (headerSegment.has('by')) {
+            if (forwardingSendBy && headerSegment.has('by')) {
               processedHeaderSegment.push(`by=${headerSegment.get('by')}`);
             }
             
-            if (headerSegment.has('for')) {
+            if (forwardingSendFor && headerSegment.has('for')) {
               processedHeaderSegment.push(`for=${headerSegment.get('for')}`);
             }
             
-            if (headerSegment.has('host')) {
+            if (forwardingSendHost && headerSegment.has('host')) {
               processedHeaderSegment.push(`host=${headerSegment.get('host')}`);
             }
             
-            if (headerSegment.has('proto')) {
+            if (forwardingSendProto && headerSegment.has('proto')) {
               processedHeaderSegment.push(`proto=${headerSegment.get('proto')}`);
             }
             
@@ -191,18 +190,20 @@ export async function serveProxyStaticEndpoint({
       
       const firstSegment = forwardedSegments[0];
       
-      processedHeaders['x-forwarded-for'] =
-        forwardedSegments
-          .map(headerSegment => headerSegment.get('for'))
-          .filter(forSegment => forSegment != null)
-          .join(', ');
-      
-      if (firstSegment.has('proto')) {
-        processedHeaders['x-forwarded-proto'] = firstSegment.get('proto');
+      if (forwardingSendFor) {
+        processedHeaders['x-forwarded-for'] =
+          forwardedSegments
+            .map(headerSegment => headerSegment.get('for'))
+            .filter(forSegment => forSegment != null)
+            .join(', ');
       }
       
-      if (firstSegment.has('host')) {
+      if (forwardingSendHost && firstSegment.has('host')) {
         processedHeaders['x-forwarded-host'] = firstSegment.get('host');
+      }
+      
+      if (forwardingSendProto && firstSegment.has('proto')) {
+        processedHeaders['x-forwarded-proto'] = firstSegment.get('proto');
       }
     }
   } else {
