@@ -7,6 +7,7 @@ export {
   serveProxy,
   serveProxyStaticEndpoint,
 } from './server/serve_proxy.mjs';
+export { PATH_FORMAT } from './server/server_request.mjs';
 export { serveWebSocket } from './server/serve_ws.mjs';
 export {
   TLS_CONFIG_MORE_SECURE_1,

@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 
 import {
+  PATH_FORMAT,
   serveFile,
   serveFolder,
   serveProxy,
@@ -33,8 +34,8 @@ await using server = new Server({
       `/${serverRequest.path}`
     );
     
-    if (serverRequest.pathIsHostname) {
-      serverRequest.respond('Error: connect requests unsupported', 405);
+    if (serverRequest.pathFormat != PATH_FORMAT.PATH_DECODED) {
+      serverRequest.respond(`Error: path ${JSON.stringify(serverRequest.pathRaw)} invalid`, 400);
       return;
     }
     

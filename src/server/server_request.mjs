@@ -33,8 +33,8 @@ export class ServerRequest {
   remoteAddress;
   remotePort;
   /*
-  PATH_DECODED: pathname could be url decoded
-  PATH_NOT_DECODED: pathname could not be url decoded
+  PATH_DECODED: pathname was able to be url decoded
+  PATH_NOT_DECODED: pathname was not able to be url decoded
   PATH_INVALID: path is not a valid pathname
   ABSOLUTE_PATH: path is an unprocessed absolute path (i.e. "https://example.com/path", used if this server is a http proxy)
   HOSTNAME: path is a hostname (i.e. "example.com:443", used for CONNECT requests)
