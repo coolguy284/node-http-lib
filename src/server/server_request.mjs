@@ -1,4 +1,26 @@
+import { Enum } from '../lib/enum.mjs';
 import { streamToBuffer } from '../lib/stream_to_buffer.mjs';
+
+const PATH_HOSTNAME_REGEX = new RegExp(
+  '^' +
+  '(?:' +
+  '(?:[a-z0-9-]+\\.)*[a-z0-9-]+(?::\\d{0,5})?|' + // abc.xyz OR abc.xyz:1234
+  '(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d{0,5})?|' + // 0.0.0.0 OR 0.0.0.0:1234
+  '(?:[0-9a-fA-F]{0,4}:){0,7}(?:[0-9a-fA-F]{0,4})?' + // ::
+  '\\[(?:[0-9a-fA-F]{0,4}:){0,7}(?:[0-9a-fA-F]{0,4})?\\]:\\d{0,5}' + // [::]:1234
+  ')' +
+  '$'
+);
+
+const ABSOLUTE_PATH_REGEX = /^[a-z-]+:\/\/.*$/s;
+
+export const PATH_FORMAT = Enum([
+  'PATH_DECODED',
+  'PATH_NOT_DECODED',
+  'PATH_INVALID',
+  'ABSOLUTE_PATH',
+  'HOSTNAME',
+]);
 
 export class ServerRequest {
   // http1 upgrades are treated as CONNECT requests using the extended connect
@@ -10,7 +32,14 @@ export class ServerRequest {
   localPort;
   remoteAddress;
   remotePort;
-  pathIsHostname; // boolean, true if path is hostname (for CONNECT request)
+  /*
+  PATH_DECODED: pathname could be url decoded
+  PATH_NOT_DECODED: pathname could not be url decoded
+  PATH_INVALID: path is not a valid pathname
+  ABSOLUTE_PATH: path is an unprocessed absolute path (i.e. "https://example.com/path", used if this server is a http proxy)
+  HOSTNAME: path is a hostname (i.e. "example.com:443", used for CONNECT requests)
+  */
+  pathFormat;
   path; // string<URL pathname (URL-decoded), no search params, with initial '/' removed> | null
   pathSearchParams; // URLSearchParams (like Map<string<key>, string<value>>, with duplicate key support) | null
   pathRaw; // string<URL pathname, no processing>
@@ -52,7 +81,6 @@ export class ServerRequest {
     remoteAddress,
     remotePort,
     pathString,
-    pathHostnameString,
     headers,
     secure,
     bodyStream,
@@ -60,27 +88,36 @@ export class ServerRequest {
     internal,
     respondFunc,
   }) {
-    let pathIsHostname;
+    let pathFormat;
     let path = null;
     let pathSearchParams = null;
     
-    if (pathHostnameString != null) {
-      pathIsHostname = true;
-      
-      path = pathHostnameString;
-      pathSearchParams = new URLSearchParams();
+    if (PATH_HOSTNAME_REGEX.test(pathString)) {
+      pathFormat = PATH_FORMAT.HOSTNAME;
+      path = pathString;
+      pathSearchParams = null;
+    } else if (ABSOLUTE_PATH_REGEX.test(pathString)) {
+      pathFormat = PATH_FORMAT.ABSOLUTE_PATH;
+      path = pathString;
+      pathSearchParams = null;
     } else {
-      pathIsHostname = false;
+      pathFormat = false;
       
       let pathUrl;
       try {
         pathUrl = new URL(`https://domain/${pathString.slice(1)}`);
       } catch { /* empty */ }
       
-      if (pathUrl != null) {
+      if (pathUrl == null) {
+        pathFormat = PATH_FORMAT.PATH_INVALID;
+        path = null;
+      } else {
+        pathFormat = PATH_FORMAT.PATH_DECODED;
+        
         try {
           path = decodeURIComponent(pathUrl.pathname);
         } catch {
+          pathFormat = PATH_FORMAT.PATH_NOT_DECODED;
           path = pathUrl.pathname;
         }
         
@@ -96,7 +133,7 @@ export class ServerRequest {
       localPort,
       remoteAddress,
       remotePort,
-      pathIsHostname,
+      pathFormat,
       path,
       pathSearchParams,
       pathRaw: pathString,
@@ -116,7 +153,7 @@ export class ServerRequest {
     localPort,
     remoteAddress,
     remotePort,
-    pathIsHostname,
+    pathFormat,
     path,
     pathSearchParams,
     pathRaw,
@@ -133,7 +170,7 @@ export class ServerRequest {
     this.localPort = localPort;
     this.remoteAddress = remoteAddress;
     this.remotePort = remotePort;
-    this.pathIsHostname = pathIsHostname;
+    this.pathFormat = pathFormat;
     this.path = path;
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
@@ -167,7 +204,7 @@ export class ServerRequest {
       localPort: this.localPort,
       remoteAddress: this.remoteAddress,
       remotePort: this.remotePort,
-      pathIsHostname: this.pathIsHostname,
+      pathFormat: this.pathFormat,
       path: this.path.slice(pathStart.length),
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,

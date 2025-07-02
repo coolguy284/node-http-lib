@@ -187,7 +187,7 @@ export class Server {
       listenerID,
       ...getIPObject(socket),
       secure,
-      pathHostnameString: req.url,
+      pathString: req.url,
       headers: processedHeaders,
       bodyStream: multiStream([
         head,
@@ -241,15 +241,7 @@ export class Server {
       listenerID,
       ...getIPObject(stream.session.socket),
       secure,
-      ...(
-        headers[':method'] == 'CONNECT' && !(':protocol' in headers) ?
-          {
-            pathHostnameString: headers[':path'],
-          } :
-          {
-            pathString: headers[':path'],
-          }
-      ),
+      pathString: headers[':path'],
       headers: processedHeaders,
       bodyStream: stream,
       server: this,
