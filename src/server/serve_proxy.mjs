@@ -20,6 +20,9 @@ export async function serveProxyStaticEndpoint({
   forwardingSendFor = false,
   forwardingSendHost = false,
   forwardingSendProto = false,
+  forwardingCurrentHopByValue = null,
+  forwardingAddCurrentHopHost = false,
+  forwardingAddCurrentHopProto = false,
   errorIfErrorStatusCode = false,
   gracefulShutdownFunc = ({ serverRequest, clientRequest }) => {
     serverRequest.bodyStream.destroy();
@@ -154,6 +157,21 @@ export async function serveProxyStaticEndpoint({
     
     forwardedSegments.push(new Map([
       ['for', serverRequest.remoteAddress],
+      ...(
+        forwardingCurrentHopByValue != null ?
+          [['by', forwardingCurrentHopByValue]] :
+          []
+      ),
+      ...(
+        forwardingAddCurrentHopHost && ':authority' in serverRequest.headers ?
+          [['host', serverRequest.headers[':authority']]] :
+          []
+      ),
+      ...(
+        forwardingAddCurrentHopProto ?
+          [['proto', serverRequest.secure ? 'https' : 'http']] :
+          []
+      ),
     ]));
     
     if (sendForwardedHeader) {
@@ -277,10 +295,12 @@ export async function serveProxy({
   sendForwardedHeader,
   sendXForwardedHeaders,
   forwardingSendBy,
-  forwardingByDefault,
   forwardingSendForAndBy,
   forwardingSendHost,
   forwardingSendProto,
+  forwardingCurrentHopByValue,
+  forwardingAddCurrentHopHost,
+  forwardingAddCurrentHopProto,
   errorIfErrorStatusCode,
   gracefulShutdownFunc,
 }) {
@@ -300,10 +320,12 @@ export async function serveProxy({
     sendForwardedHeader,
     sendXForwardedHeaders,
     forwardingSendBy,
-    forwardingByDefault,
     forwardingSendForAndBy,
     forwardingSendHost,
     forwardingSendProto,
+    forwardingCurrentHopByValue,
+    forwardingAddCurrentHopHost,
+    forwardingAddCurrentHopProto,
     errorIfErrorStatusCode,
     gracefulShutdownFunc,
   });
