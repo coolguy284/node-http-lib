@@ -3,11 +3,10 @@ post-quantum tls support
 http3 support
 
 low prio:
-close server with open websocket hangs
-add x-forwarded-for and x-forwarded-proto and others as default disabled in serveproxy
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 custom object support in serverrequest
 add docs to things
+close server with open websocket hangs
 servefs if-range support
 alter serverRequest to foster more explicit checking if serverRequest.path is a path or a full url
 http1 session support with connection reuse

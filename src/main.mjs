@@ -4,6 +4,7 @@ export { Server } from './server/server.mjs';
 export { serveFile } from './server/serve_file.mjs';
 export { serveFolder } from './server/serve_folder.mjs';
 export {
+  PROXY_MODE,
   serveProxy,
   serveProxyStaticEndpoint,
 } from './server/serve_proxy.mjs';
