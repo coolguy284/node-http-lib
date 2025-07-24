@@ -10,7 +10,6 @@ import {
 } from 'node:path';
 
 import {
-  ALLOWED_METHODS,
   ALLOWED_METHODS_STRING,
   getProcessedRequestPath,
   serveFile,
@@ -78,7 +77,7 @@ export async function serveFolder({
     await serveFile_send405({
       serverRequest,
       serve405,
-      allowedMethods: ALLOWED_METHODS,
+      allowedMethodsString: ALLOWED_METHODS_STRING,
     });
     return;
   }

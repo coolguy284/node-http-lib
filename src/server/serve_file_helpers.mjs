@@ -91,32 +91,26 @@ export async function serveFile_send404({ serverRequest, processedRequestPath, s
   }
 }
 
-export async function serveFile_send405({ serverRequest, serve405, additionalHeaders, allowedMethods = null }) {
+export async function serveFile_send405({ serverRequest, serve405, additionalHeaders, allowedMethodsString = null }) {
   if (serve405 != null) {
     await serve405({
       serverRequest,
     });
   } else {
-    let joinedAllowedMethods;
-    
-    if (allowedMethods != null) {
-      joinedAllowedMethods = allowedMethods.join(', ');
-    }
-    
     serveFile_sendInternal({
       serverRequest,
       statusCode: 405,
       errorMsg:
         `method ${JSON.stringify(serverRequest.headers[':method'])} unknown` +
           (
-            allowedMethods != null ?
-              `; allowed methods: ${joinedAllowedMethods}` :
+            allowedMethodsString != null ?
+              `; allowed methods: ${allowedMethodsString}` :
               ''
           ),
       additionalHeaders:
-        allowedMethods != null ?
+        allowedMethodsString != null ?
           {
-            allow: joinedAllowedMethods,
+            allow: allowedMethodsString,
             ...additionalHeaders,
           } :
           additionalHeaders,

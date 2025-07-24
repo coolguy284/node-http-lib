@@ -18,7 +18,7 @@ import {
 } from './serve_file_helpers.mjs';
 
 const ALLOWED_METHODS = ['GET', 'HEAD', 'OPTIONS'];
-const ALLOWED_METHODS_STRING = ALLOWED_METHODS.join(', ');
+export const ALLOWED_METHODS_STRING = ALLOWED_METHODS.join(', ');
 
 export function getProcessedRequestPath(serverRequestPath) {
   let processedRequestPath = serverRequestPath;
@@ -112,7 +112,7 @@ export async function serveFile({
     await serveFile_send405({
       serverRequest,
       serve405,
-      allowedMethods: ALLOWED_METHODS,
+      allowedMethodsString: ALLOWED_METHODS_STRING,
     });
     return;
   }
