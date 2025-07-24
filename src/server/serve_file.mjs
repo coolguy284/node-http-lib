@@ -12,9 +12,13 @@ import { multiStream } from '../lib/multi_stream.mjs';
 import {
   serveFile_send400_generic,
   serveFile_send404,
+  serveFile_send405,
   serveFile_send416,
   serveFile_send500,
 } from './serve_file_helpers.mjs';
+
+const ALLOWED_METHODS = ['GET', 'HEAD', 'OPTIONS'];
+const ALLOWED_METHODS_STRING = ALLOWED_METHODS.join(', ');
 
 export function getProcessedRequestPath(serverRequestPath) {
   let processedRequestPath = serverRequestPath;
@@ -81,6 +85,7 @@ export async function serveFile({
   additionalHeaders = {},
   serve400 = null,
   serve404 = null,
+  serve405 = null,
   serve416 = null,
   serve500 = null,
   errorReceiver = console.error,
@@ -93,6 +98,25 @@ export async function serveFile({
   // Symbol.asyncDispose
   fsPromisesOpen = open,
 }) {
+  if (serverRequest.headers[':method'] == 'OPTIONS') {
+    serverRequest.respond(
+      null,
+      {
+        allow: ALLOWED_METHODS_STRING,
+        ...additionalHeaders,
+      },
+    );
+  }
+  
+  if (serverRequest.headers[':method'] != 'GET' && serverRequest.headers[':method'] != 'HEAD') {
+    await serveFile_send405({
+      serverRequest,
+      serve405,
+      allowedMethods: ALLOWED_METHODS,
+    });
+    return;
+  }
+  
   const processedRequestPath = getProcessedRequestPath(serverRequest.path);
   
   try {

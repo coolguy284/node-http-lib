@@ -10,6 +10,8 @@ import {
 } from 'node:path';
 
 import {
+  ALLOWED_METHODS,
+  ALLOWED_METHODS_STRING,
   getProcessedRequestPath,
   serveFile,
 } from './serve_file.mjs';
@@ -19,9 +21,6 @@ import {
   serveFile_send404,
   serveFile_send405,
 } from './serve_file_helpers.mjs';
-
-const allowedMethods = ['GET', 'HEAD', 'OPTIONS'];
-const allowedMethodsString = allowedMethods.join(', ');
 
 export async function serveFolder({
   serverRequest,
@@ -61,7 +60,7 @@ export async function serveFolder({
     serverRequest.respond(
       null,
       {
-        allow: allowedMethodsString,
+        allow: ALLOWED_METHODS_STRING,
         ...(
           additionalHeadersFunc?.({
             requestPath: serverRequest.path,
@@ -79,7 +78,7 @@ export async function serveFolder({
     await serveFile_send405({
       serverRequest,
       serve405,
-      allowedMethods,
+      allowedMethods: ALLOWED_METHODS,
     });
     return;
   }
@@ -156,6 +155,7 @@ export async function serveFolder({
       {},
     serve400,
     serve404,
+    serve405,
     serve416,
     serve500,
     errorReceiver,
