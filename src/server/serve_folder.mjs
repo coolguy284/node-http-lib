@@ -20,6 +20,9 @@ import {
   serveFile_send405,
 } from './serve_file_helpers.mjs';
 
+const allowedMethods = ['GET', 'HEAD', 'OPTIONS'];
+const allowedMethodsString = allowedMethods.join(', ');
+
 export async function serveFolder({
   serverRequest,
   fsPathPrefix,
@@ -54,11 +57,29 @@ export async function serveFolder({
     return;
   }
   
+  if (serverRequest.headers[':method'] == 'OPTIONS') {
+    serverRequest.respond(
+      null,
+      {
+        allow: allowedMethodsString,
+        ...(
+          additionalHeadersFunc?.({
+            requestPath: serverRequest.path,
+            processedRequestPath,
+            fsPath: resultFsPath,
+            serverRequest,
+          }) ??
+          {}
+        ),
+      },
+    );
+  }
+  
   if (serverRequest.headers[':method'] != 'GET' && serverRequest.headers[':method'] != 'HEAD') {
     await serveFile_send405({
       serverRequest,
       serve405,
-      allowedMethods: ['GET', 'HEAD'],
+      allowedMethods,
     });
     return;
   }
