@@ -62,17 +62,17 @@ export async function serveFolder({
     return;
   }
   
+  const processedRequestPath = getProcessedPath(serverRequest.path);
+  
   if (sep == '\\' && serverRequest.path.includes('\\')) {
     // automatic 404 to simulate linux behavior of not having this path
     await serveFile_send404({
       serverRequest,
-      processedPath,
+      processedRequestPath,
       serve404,
     });
     return;
   }
-  
-  const processedRequestPath = getProcessedPath(serverRequest.path);
   
   const pathLeavesBounds = relative('.', processedRequestPath).split('/')[0] == '..';
   
