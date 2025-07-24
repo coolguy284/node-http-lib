@@ -10,7 +10,7 @@ import {
 } from 'node:path';
 
 import {
-  getProcessedPath,
+  getProcessedRequestPath,
   serveFile,
 } from './serve_file.mjs';
 import {
@@ -62,7 +62,7 @@ export async function serveFolder({
     return;
   }
   
-  const processedRequestPath = getProcessedPath(serverRequest.path);
+  const processedRequestPath = getProcessedRequestPath(serverRequest.path);
   
   if (sep == '\\' && serverRequest.path.includes('\\')) {
     // automatic 404 to simulate linux behavior of not having this path

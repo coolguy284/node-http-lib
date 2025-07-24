@@ -16,14 +16,14 @@ import {
   serveFile_send500,
 } from './serve_file_helpers.mjs';
 
-export function getProcessedPath(clientRequestPath) {
-  let processedPath = clientRequestPath;
+export function getProcessedRequestPath(serverRequestPath) {
+  let processedRequestPath = serverRequestPath;
   
-  if (processedPath == '' || processedPath.endsWith('/')) {
-    processedPath += 'index.html';
+  if (processedRequestPath == '' || processedRequestPath.endsWith('/')) {
+    processedRequestPath += 'index.html';
   }
   
-  return processedPath;
+  return processedRequestPath;
 }
 
 async function awaitFileStreamReady(fileStream) {
@@ -93,7 +93,7 @@ export async function serveFile({
   // Symbol.asyncDispose
   fsPromisesOpen = open,
 }) {
-  const processedPath = getProcessedPath(serverRequest.path);
+  const processedRequestPath = getProcessedPath(serverRequest.path);
   
   try {
     const stats = await fsPromisesStat(fsPath);
@@ -101,14 +101,14 @@ export async function serveFile({
     if (!stats.isFile()) {
       await serveFile_send404({
         serverRequest,
-        processedPath,
+        processedRequestPath,
         serve404,
         additionalHeaders,
       });
       return;
     }
     
-    const mimeType = mime.getType(processedPath);
+    const mimeType = mime.getType(processedRequestPath);
     
     let contentType;
     if (mimeType == null) {
@@ -125,7 +125,7 @@ export async function serveFile({
       if (match == null) {
         await serveFile_send400_generic({
           serverRequest,
-          processedPath,
+          processedRequestPath,
           serve400,
           additionalHeaders,
         });
@@ -163,7 +163,7 @@ export async function serveFile({
       if (!/^(?:Sun|Mon|Tue|Wed|Thur|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(serverRequest.headers['if-modified-since'])) {
         await serveFile_send400_generic({
           serverRequest,
-          processedPath,
+          processedRequestPath,
           serve400,
           additionalHeaders,
         });
@@ -207,7 +207,7 @@ export async function serveFile({
       if (match == null) {
         await serveFile_send400_generic({
           serverRequest,
-          processedPath,
+          processedRequestPath,
           serve400,
           additionalHeaders,
         });
@@ -219,7 +219,7 @@ export async function serveFile({
       if (unit != 'bytes') {
         await serveFile_send400_generic({
           serverRequest,
-          processedPath,
+          processedRequestPath,
           serve400,
           additionalHeaders,
         });
@@ -243,7 +243,7 @@ export async function serveFile({
           // invalid
           await serveFile_send400_generic({
             serverRequest,
-            processedPath,
+            processedRequestPath,
             serve400,
             additionalHeaders,
           });
@@ -253,7 +253,7 @@ export async function serveFile({
           if (end > stats.size) {
             await serveFile_send416({
               serverRequest,
-              processedPath,
+              processedRequestPath,
               serve416,
               additionalHeaders,
             });
@@ -264,7 +264,7 @@ export async function serveFile({
           if (start >= stats.size) {
             await serveFile_send416({
               serverRequest,
-              processedPath,
+              processedRequestPath,
               serve416,
               additionalHeaders,
             });
@@ -275,7 +275,7 @@ export async function serveFile({
           if (start >= stats.size || end >= stats.size) {
             await serveFile_send416({
               serverRequest,
-              processedPath,
+              processedRequestPath,
               serve416,
               additionalHeaders,
             });
@@ -286,7 +286,7 @@ export async function serveFile({
           if (end < start) {
             await serveFile_send416({
               serverRequest,
-              processedPath,
+              processedRequestPath,
               serve416,
               additionalHeaders,
             });
@@ -448,7 +448,7 @@ export async function serveFile({
     if (err.code == 'ENOENT') {
       await serveFile_send404({
         serverRequest,
-        processedPath,
+        processedRequestPath,
         serve404,
         additionalHeaders,
       });
@@ -459,7 +459,7 @@ export async function serveFile({
       
       await serveFile_send500({
         serverRequest,
-        processedPath,
+        processedRequestPath,
         serve500,
         additionalHeaders,
       });

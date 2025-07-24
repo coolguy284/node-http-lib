@@ -18,7 +18,7 @@ function serveFile_sendInternal({ serverRequest, statusCode, errorMsg, additiona
   }
 }
 
-export async function serveFile_send400_generic({ serverRequest, processedPath, serve400, additionalHeaders }) {
+export async function serveFile_send400_generic({ serverRequest, processedRequestPath, serve400, additionalHeaders }) {
   if (serve400 != null) {
     await serve400({
       serverRequest,
@@ -27,7 +27,7 @@ export async function serveFile_send400_generic({ serverRequest, processedPath, 
     serveFile_sendInternal({
       serverRequest,
       statusCode: 400,
-      errorMsg: `file ${JSON.stringify(processedPath)} request invalid`,
+      errorMsg: `file ${JSON.stringify(processedRequestPath)} request invalid`,
       additionalHeaders,
     });
   }
@@ -93,7 +93,7 @@ export async function serveFile_send405({ serverRequest, serve405, additionalHea
   }
 }
 
-export async function serveFile_send416({ serverRequest, processedPath, serve416, additionalHeaders }) {
+export async function serveFile_send416({ serverRequest, processedRequestPath, serve416, additionalHeaders }) {
   if (serve416 != null) {
     await serve416({
       serverRequest,
@@ -102,13 +102,13 @@ export async function serveFile_send416({ serverRequest, processedPath, serve416
     serveFile_sendInternal({
       serverRequest,
       statusCode: 416,
-      errorMsg: `file ${JSON.stringify(processedPath)}, range ${JSON.stringify(serverRequest.headers.range)} not satisfyable`,
+      errorMsg: `file ${JSON.stringify(processedRequestPath)}, range ${JSON.stringify(serverRequest.headers.range)} not satisfyable`,
       additionalHeaders,
     });
   }
 }
 
-export async function serveFile_send500({ serverRequest, processedPath, serve500, additionalHeaders }) {
+export async function serveFile_send500({ serverRequest, processedRequestPath, serve500, additionalHeaders }) {
   if (serve500 != null) {
     await serve500({
       serverRequest,
@@ -117,7 +117,7 @@ export async function serveFile_send500({ serverRequest, processedPath, serve500
     serveFile_sendInternal({
       serverRequest,
       statusCode: 500,
-      errorMsg: `an internal server error occurred trying to access the file ${JSON.stringify(processedPath)}`,
+      errorMsg: `an internal server error occurred trying to access the file ${JSON.stringify(processedRequestPath)}`,
       additionalHeaders,
     });
   }
