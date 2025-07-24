@@ -72,29 +72,37 @@ export async function serveFolder({
     return;
   }
   
-  const processedPath = getProcessedPath(serverRequest.path);
+  const processedRequestPath = getProcessedPath(serverRequest.path);
   
-  const pathLeavesBounds = relative('.', processedPath).split('/')[0] == '..';
+  const pathLeavesBounds = relative('.', processedRequestPath).split('/')[0] == '..';
   
   if (pathLeavesBounds) {
     await serveFile_send403({
       serverRequest,
-      processedPath,
+      processedRequestPath,
       serve403,
     });
     return;
   }
   
-  if (pathFilter != null && !pathFilter(processedPath)) {
+  if (
+    pathFilter != null &&
+      !pathFilter({
+        requestPath: serverRequest.path,
+        processedRequestPath,
+        fsPath: resultFsPath,
+        serverRequest,
+      })
+  ) {
     await serveFile_send404({
       serverRequest,
-      processedPath,
+      processedRequestPath,
       serve404,
     });
     return;
   }
   
-  const resultFsPath = join(fsPathPrefix, processedPath);
+  const resultFsPath = join(fsPathPrefix, processedRequestPath);
   
   await serveFile({
     serverRequest,
@@ -104,6 +112,7 @@ export async function serveFolder({
       includeLastModified ?
         lastModifiedOverrideFunc?.({
           requestPath: serverRequest.path,
+          processedRequestPath,
           fsPath: resultFsPath,
           serverRequest,
         }) :
@@ -111,12 +120,14 @@ export async function serveFolder({
     etag:
       etagFunc?.({
         requestPath: serverRequest.path,
+        processedRequestPath,
         fsPath: resultFsPath,
         serverRequest,
       }),
     additionalHeaders:
       additionalHeadersFunc?.({
         requestPath: serverRequest.path,
+        processedRequestPath,
         fsPath: resultFsPath,
         serverRequest,
       }) ??

@@ -48,7 +48,7 @@ export async function serveFile_send400_badURL({ serverRequest, serve400, additi
   }
 }
 
-export async function serveFile_send403({ serverRequest, processedPath, serve403, additionalHeaders }) {
+export async function serveFile_send403({ serverRequest, processedRequestPath, serve403, additionalHeaders }) {
   if (serve403 != null) {
     await serve403({
       serverRequest,
@@ -57,13 +57,13 @@ export async function serveFile_send403({ serverRequest, processedPath, serve403
     serveFile_sendInternal({
       serverRequest,
       statusCode: 403,
-      errorMsg: `path ${JSON.stringify(processedPath)} leaves containing folder`,
+      errorMsg: `path ${JSON.stringify(processedRequestPath)} leaves containing folder`,
       additionalHeaders,
     });
   }
 }
 
-export async function serveFile_send404({ serverRequest, processedPath, serve404, additionalHeaders }) {
+export async function serveFile_send404({ serverRequest, processedRequestPath, serve404, additionalHeaders }) {
   if (serve404 != null) {
     await serve404({
       serverRequest,
@@ -72,7 +72,7 @@ export async function serveFile_send404({ serverRequest, processedPath, serve404
     serveFile_sendInternal({
       serverRequest,
       statusCode: 404,
-      errorMsg: `file ${JSON.stringify(processedPath)} not found`,
+      errorMsg: `file ${JSON.stringify(processedRequestPath)} not found`,
       additionalHeaders,
     });
   }
