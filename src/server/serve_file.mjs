@@ -93,7 +93,7 @@ export async function serveFile({
   // Symbol.asyncDispose
   fsPromisesOpen = open,
 }) {
-  const processedRequestPath = getProcessedPath(serverRequest.path);
+  const processedRequestPath = getProcessedRequestPath(serverRequest.path);
   
   try {
     const stats = await fsPromisesStat(fsPath);

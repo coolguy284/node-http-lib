@@ -85,6 +85,8 @@ export async function serveFolder({
     return;
   }
   
+  const resultFsPath = join(fsPathPrefix, processedRequestPath);
+  
   if (
     pathFilter != null &&
       !pathFilter({
@@ -101,8 +103,6 @@ export async function serveFolder({
     });
     return;
   }
-  
-  const resultFsPath = join(fsPathPrefix, processedRequestPath);
   
   await serveFile({
     serverRequest,
