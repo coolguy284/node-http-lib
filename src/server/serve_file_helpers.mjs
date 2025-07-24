@@ -18,16 +18,29 @@ function serveFile_sendInternal({ serverRequest, statusCode, errorMsg, additiona
   }
 }
 
-export async function serveFile_send400_generic({ serverRequest, processedRequestPath, serve400, additionalHeaders }) {
+export async function serveFile_send400_generic({
+  serverRequest,
+  processedRequestPath,
+  serve400,
+  additionalHeaders,
+  errorInfo = null,
+}) {
   if (serve400 != null) {
     await serve400({
       serverRequest,
+      errorInfo,
     });
   } else {
     serveFile_sendInternal({
       serverRequest,
       statusCode: 400,
-      errorMsg: `file ${JSON.stringify(processedRequestPath)} request invalid`,
+      errorMsg:
+        `file ${JSON.stringify(processedRequestPath)} request invalid` +
+        (
+          errorInfo != null ?
+            `: ${errorInfo}` :
+            ''
+        ),
       additionalHeaders,
     });
   }

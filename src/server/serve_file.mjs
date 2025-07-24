@@ -128,6 +128,7 @@ export async function serveFile({
           processedRequestPath,
           serve400,
           additionalHeaders,
+          errorInfo: 'no quotes around "if-none-match" header',
         });
         return;
       }
@@ -166,6 +167,7 @@ export async function serveFile({
           processedRequestPath,
           serve400,
           additionalHeaders,
+          errorInfo: `"if-modified-since" header invalid format: expected format "[Sun|Mon|Tue|Wed|Thu|Fri|Sat] [00-31] [Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec] [0000-9999+] [00-24]:[00-59]:[00-59] GMT", but value was ${JSON.stringify(serverRequest.headers['if-modified-since'])}`,
         });
         return;
       }
@@ -210,6 +212,7 @@ export async function serveFile({
           processedRequestPath,
           serve400,
           additionalHeaders,
+          errorInfo: `"range" header invalid format: value was ${JSON.stringify(serverRequest.headers['range'])}`,
         });
         return;
       }
@@ -222,6 +225,7 @@ export async function serveFile({
           processedRequestPath,
           serve400,
           additionalHeaders,
+          errorInfo: `"range" header invalid unit: expected "bytes=" at header start, but header was ${JSON.stringify(serverRequest.headers['range'])}`,
         });
         return;
       }
@@ -246,6 +250,7 @@ export async function serveFile({
             processedRequestPath,
             serve400,
             additionalHeaders,
+            errorInfo: `"range" header invalid section: at least one of the ranges is "-", with both start and ending range unspecified. this is disallowed (header contents ${JSON.stringify(serverRequest.headers['range'])})`,
           });
           return;
         } else if (start == null && end != null) {
