@@ -160,7 +160,7 @@ export async function serveFile({
     }
     
     if (includeLastModified && 'if-modified-since' in serverRequest.headers) {
-      if (!/^(?:Sun|Mon|Tue|Wed|Thur|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(serverRequest.headers['if-modified-since'])) {
+      if (!/^(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) -?\d+ \d{2}:\d{2}:\d{2} GMT$/.test(serverRequest.headers['if-modified-since'])) {
         await serveFile_send400_generic({
           serverRequest,
           processedRequestPath,
