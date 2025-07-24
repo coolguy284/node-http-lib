@@ -3,6 +3,7 @@ post-quantum tls support
 http3 support
 
 low prio:
+throttle support
 servefs compression if file / file chunk above 256 bytes threshold, configurable
 custom object support in serverrequest
 add docs to things
