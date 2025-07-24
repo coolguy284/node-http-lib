@@ -58,6 +58,7 @@ export async function serveFolder({
     await serveFile_send405({
       serverRequest,
       serve405,
+      allowedMethods: ['GET', 'HEAD'],
     });
     return;
   }
