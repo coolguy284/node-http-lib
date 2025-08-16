@@ -33,6 +33,7 @@ await using server = new Server({
       } ` +
       `/${serverRequest.path}`
     );
+    //console.log(`UA: ${serverRequest.headers['user-agent']}`);
     
     if (serverRequest.pathFormat != PATH_FORMAT.PATH_DECODED) {
       serverRequest.respond(`Error: path ${JSON.stringify(serverRequest.pathRaw)} invalid`, 400);
