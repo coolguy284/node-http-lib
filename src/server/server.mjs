@@ -579,6 +579,9 @@ export class Server {
           });
           break;
         }
+        
+        default:
+          throw new Error(`unknown or unsupported mode: ${mode}`);
       }
     }
     
