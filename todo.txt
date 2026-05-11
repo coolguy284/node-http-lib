@@ -12,4 +12,4 @@ add docs to things
 close server with open websocket hangs
 servefs if-range support
 alter serverRequest to foster more explicit checking if serverRequest.path is a path or a full url
-http1 session support with connection reuse
+http1 and http3 session support with connection reuse

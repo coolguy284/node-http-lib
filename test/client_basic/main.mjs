@@ -67,7 +67,6 @@ import {
   console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
-/*
 {
   const clientResponse = await request({
     mode: 'http3',
@@ -84,6 +83,7 @@ import {
   console.log((await clientResponse.getBodyAsBuffer()).toString());
 }
 
+/*
 {
   using session = new RequestSession();
   

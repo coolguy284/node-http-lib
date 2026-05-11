@@ -2,6 +2,8 @@ import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { Readable } from 'node:stream';
 
+import { request as http3Request } from 'quico';
+
 import { ClientResponse } from './client_response.mjs';
 import { createDisposableIfNull } from '../lib/create_disposable.mjs';
 import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
@@ -25,7 +27,8 @@ export async function request({
   
   switch (mode) {
     case 'http':
-    case 'https': {
+    case 'https':
+    case 'http3': {
       let processedHeaders = { ...headers };
       delete processedHeaders[':scheme'];
       
@@ -45,7 +48,12 @@ export async function request({
       
       delete processedHeaders[':method'];
       
-      const requestFunc = mode == 'http' ? httpRequest : httpsRequest;
+      const requestFunc =
+        mode == 'http' ?
+          httpRequest :
+          mode == 'https' ?
+            httpsRequest :
+            http3Request;
       
       const clientRequest = requestFunc({
         host,
@@ -56,7 +64,8 @@ export async function request({
         ...options,
       });
       
-      if (sendHeadersImmediately) {
+      if (sendHeadersImmediately && mode != 'http3') {
+        // quico doesn't support flushHeaders
         clientRequest.flushHeaders();
       }
       
