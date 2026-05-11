@@ -1,6 +1,6 @@
 once nodejs updates:
 post-quantum tls support
-http3 support
+native http3 support
 
 low prio:
 create adapter that provides an interface identical to node:http / node:https but uses the underlying server
