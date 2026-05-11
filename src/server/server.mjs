@@ -607,7 +607,11 @@ export class Server {
             throw new Error(`options not object or undefined: ${options}`);
           }
           
-          instance.server = createHTTP3Server(options);
+          instance.server = createHTTP3Server({
+            http1: false,
+            http2: false,
+            ...options,
+          });
           
           this.#createHttp1LikeServer({
             instance,
