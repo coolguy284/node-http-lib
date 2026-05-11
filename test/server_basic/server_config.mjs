@@ -37,7 +37,7 @@ export const INSTANCES = [
       },
     },
   },
-  /*{
+  {
     listenerID: 'http3',
     mode: 'http3',
     ip: 'localhost',
@@ -45,5 +45,5 @@ export const INSTANCES = [
     options: {
       ...TLS_OPTIONS,
     },
-  },*/
+  },
 ];

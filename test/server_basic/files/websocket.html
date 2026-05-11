@@ -25,7 +25,8 @@
       });
       
       ws.addEventListener('error', evt => {
-        websocket_results.innerText += `websocket closed due to error:\n${evt.toString()}\n`;
+        websocket_results.innerText += `websocket closed due to error (see console for details):\n${evt.toString()}\n`;
+        console.error(evt);
       });
       
       ws.addEventListener('message', evt => {
