@@ -51,13 +51,17 @@ export class ServerRequest {
     )
   */
   headers;
+  secure;
+  mode;
+  bodyStream; // stream.Readable
+  server;
   /*
     {
       mode: 'http1' | 'http1-upgrade' | 'http2',
-      if mode == 'http1':
+      if mode == 'http1' || mode == 'http3':
         req: IncomingMessage,
         res: ServerResponse,
-      if mode == 'http1-upgrade':
+      if mode == 'http1-upgrade' || mode == 'http1-connect' || mode == 'http3-upgrade' || mode == 'http3-connect':
         req: IncomingMessage,
         socket: Socket,
         head: Object,
@@ -68,9 +72,6 @@ export class ServerRequest {
         rawHeaders: Array,
     }
   */
-  secure;
-  bodyStream; // stream.Readable
-  server;
   internal;
   
   static createNew({
@@ -82,7 +83,7 @@ export class ServerRequest {
     remotePort,
     pathString,
     headers,
-    secure,
+    mode,
     bodyStream,
     server,
     internal,
@@ -138,7 +139,7 @@ export class ServerRequest {
       pathSearchParams,
       pathRaw: pathString,
       headers,
-      secure,
+      mode,
       bodyStream,
       server,
       internal,
@@ -158,7 +159,7 @@ export class ServerRequest {
     pathSearchParams,
     pathRaw,
     headers,
-    secure,
+    mode,
     bodyStream,
     server,
     internal,
@@ -175,7 +176,8 @@ export class ServerRequest {
     this.pathSearchParams = pathSearchParams;
     this.pathRaw = pathRaw;
     this.headers = headers;
-    this.secure = secure;
+    this.mode = mode;
+    this.secure = mode == 'http' || mode == 'http2-notls' ? false : true;
     this.bodyStream = bodyStream;
     this.server = server;
     this.internal = internal;
@@ -209,7 +211,7 @@ export class ServerRequest {
       pathSearchParams: this.pathSearchParams,
       pathRaw: this.pathRaw,
       headers: this.headers,
-      secure: this.secure,
+      mode: this.mode,
       bodyStream: this.bodyStream,
       server: this.server,
       internal: this.internal,

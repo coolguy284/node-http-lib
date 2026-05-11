@@ -7,6 +7,8 @@ import { createServer as createHTTPSServer } from 'node:https';
 import { Readable } from 'node:stream';
 import { createServer as createTLSServer } from 'node:tls';
 
+import { createServer as createHTTP3Server } from 'quico';
+
 import { multiStream } from '../lib/multi_stream.mjs';
 import { awaitEventOrError } from '../lib/event_emitter_promise.mjs';
 import { ServerRequest } from './server_request.mjs';
@@ -54,9 +56,9 @@ export class Server {
   #gracefulShutdownPromises = new Set();
   #gracefulShutdownFuncs = new Set();
   
-  async #handleHTTP1Request({ listenerID, secure, req, res }) {
+  async #handleHTTP1LikeRequest({ listenerID, mode, req, res }) {
     let processedHeaders = {
-      ':scheme': secure ? 'https' : 'http',
+      ':scheme': mode == 'http' ? 'http' : 'https',
       ':method': req.method,
       ':authority': req.headers.host,
       ...req.headers,
@@ -70,17 +72,23 @@ export class Server {
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(req.socket),
-      secure,
+      mode,
       pathString: req.url,
       headers: processedHeaders,
       bodyStream: req,
       server: this,
-      internal: {
-        mode: 'http1',
-        req,
-        res,
-        socket: req.socket,
-      },
+      internal:
+        mode == 'http3' ?
+          {
+            mode: 'http3',
+            req,
+            res,
+          } : {
+            mode: 'http1',
+            req,
+            res,
+            socket: req.socket,
+          },
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
@@ -103,9 +111,9 @@ export class Server {
     }));
   }
   
-  async #handleHTTP1Upgrade({ listenerID, secure, req, socket, head }) {
+  async #handleHTTP1LikeUpgrade({ listenerID, mode, req, socket, head }) {
     let processedHeaders = {
-      ':scheme': secure ? 'https' : 'http',
+      ':scheme': mode == 'http' ? 'http' : 'https',
       ':method': 'CONNECT',
       ':authority': req.headers.host,
       ':protocol': req.headers.upgrade,
@@ -121,7 +129,7 @@ export class Server {
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
-      secure,
+      mode,
       pathString: req.url,
       headers: processedHeaders,
       bodyStream: multiStream([
@@ -129,12 +137,19 @@ export class Server {
         socket,
       ]),
       server: this,
-      internal: {
-        mode: 'http1-upgrade',
-        req,
-        socket,
-        head,
-      },
+      internal:
+        mode == 'http3' ?
+          {
+            mode: 'http3-upgrade',
+            req,
+            socket,
+            head,
+          } : {
+            mode: 'http1-upgrade',
+            req,
+            socket,
+            head,
+          },
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
@@ -171,7 +186,7 @@ export class Server {
     }));
   }
   
-  async #handleHTTP1Connect({ listenerID, secure, req, socket, head }) {
+  async #handleHTTP1LikeConnect({ listenerID, mode, req, socket, head }) {
     let processedHeaders = {
       ':method': req.method,
       ':authority': req.headers.host,
@@ -186,7 +201,7 @@ export class Server {
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(socket),
-      secure,
+      mode,
       pathString: req.url,
       headers: processedHeaders,
       bodyStream: multiStream([
@@ -194,12 +209,19 @@ export class Server {
         socket,
       ]),
       server: this,
-      internal: {
-        mode: 'http1-connect',
-        req,
-        socket,
-        head,
-      },
+      internal:
+        mode == 'http3' ?
+          {
+            mode: 'http3-connect',
+            req,
+            socket,
+            head,
+          } : {
+            mode: 'http1-connect',
+            req,
+            socket,
+            head,
+          },
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
@@ -240,7 +262,7 @@ export class Server {
     await this.#requestListener(ServerRequest.createNew({
       listenerID,
       ...getIPObject(stream.session.socket),
-      secure,
+      mode: secure ? 'http2' : 'http2-notls',
       pathString: headers[':path'],
       headers: processedHeaders,
       bodyStream: stream,
@@ -278,17 +300,17 @@ export class Server {
     }));
   }
   
-  #createHttp1Server({
+  #createHttp1LikeServer({
     instance,
-    secure,
+    mode,
   }) {
     const { listenerID, server } = instance;
     const http1UpgradeAndConnectSockets = instance.http1UpgradeAndConnectSockets = new Set();
     
     server.on('request', async (req, res) => {
-      await this.#handleHTTP1Request({
+      await this.#handleHTTP1LikeRequest({
         listenerID,
-        secure,
+        mode,
         req,
         res,
       });
@@ -302,9 +324,9 @@ export class Server {
           http1UpgradeAndConnectSockets.delete(socket);
         });
         
-        await this.#handleHTTP1Upgrade({
+        await this.#handleHTTP1LikeUpgrade({
           listenerID,
-          secure,
+          mode,
           req,
           socket,
           head,
@@ -322,9 +344,9 @@ export class Server {
           http1UpgradeAndConnectSockets.delete(socket);
         });
         
-        await this.#handleHTTP1Connect({
+        await this.#handleHTTP1LikeConnect({
           listenerID,
-          secure,
+          mode,
           req,
           socket,
           head,
@@ -507,9 +529,9 @@ export class Server {
           
           instance.server = createHTTPServer(options);
           
-          this.#createHttp1Server({
+          this.#createHttp1LikeServer({
             instance,
-            secure: false,
+            mode: 'http',
           });
           break;
         }
@@ -521,9 +543,9 @@ export class Server {
           
           const server = instance.server = createHTTPSServer(options);
           
-          this.#createHttp1Server({
+          this.#createHttp1LikeServer({
             instance,
-            secure: true,
+            mode: 'https',
           });
           
           Server.#createTLSServer({
@@ -580,6 +602,19 @@ export class Server {
           break;
         }
         
+        case 'http3':
+          if (typeof options != 'object' && options != undefined) {
+            throw new Error(`options not object or undefined: ${options}`);
+          }
+          
+          instance.server = createHTTP3Server(options);
+          
+          this.#createHttp1LikeServer({
+            instance,
+            mode: 'http3',
+          });
+          break;
+        
         default:
           throw new Error(`unknown or unsupported mode: ${mode}`);
       }
@@ -616,6 +651,7 @@ export class Server {
           case 'http':
           case 'https':
           case 'http2':
+          case 'http3':
             if (hasTlsComponent) {
               if (firstInTlsComponent) {
                 tlsServer.listen(port, ip);
@@ -662,7 +698,7 @@ export class Server {
       tlsServerConnections,
       tlsServerCachedSessionTimeout,
     } of this.#instances) {
-      if (mode == 'http' || mode == 'https') {
+      if (mode == 'http' || mode == 'https' || mode == 'http3') {
         server.close();
         
         for (const socket of http1UpgradeAndConnectSockets) {
@@ -765,7 +801,7 @@ export class Server {
       tlsServerConnections,
       tlsServerCachedSessionTimeout,
     } of this.#instances) {
-      if (mode == 'http' || mode == 'https') {
+      if (mode == 'http' || mode == 'https' || mode == 'http3') {
         server.close();
         server.closeAllConnections();
         
