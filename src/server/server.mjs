@@ -56,7 +56,7 @@ export class Server {
   #gracefulShutdownPromises = new Set();
   #gracefulShutdownFuncs = new Set();
   
-  async #handleHTTP1LikeRequest({ listenerID, mode, req, res }) {
+  async #handleHTTP1LikeRequest({ listenerID, mode, req, res, h3altSvcPort, altSvcIfH3Duration }) {
     let processedHeaders = {
       ':scheme': mode == 'http' ? 'http' : 'https',
       ':method': req.method,
@@ -92,7 +92,10 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        processedResponseHeaders = { ...responseHeaders };
+        processedResponseHeaders = {
+          ...responseHeaders,
+          ...(h3altSvcPort != null ? { 'Alt-Svc': `h3=":${h3altSvcPort}"; ma=${altSvcIfH3Duration ?? 3600}` } : {}),
+        };
         status = processedResponseHeaders[':status'];
         delete processedResponseHeaders[':status'];
         
@@ -111,7 +114,7 @@ export class Server {
     }));
   }
   
-  async #handleHTTP1LikeUpgrade({ listenerID, mode, req, socket, head }) {
+  async #handleHTTP1LikeUpgrade({ listenerID, mode, req, socket, head, h3altSvcPort, altSvcIfH3Duration }) {
     let processedHeaders = {
       ':scheme': mode == 'http' ? 'http' : 'https',
       ':method': 'CONNECT',
@@ -153,7 +156,10 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        processedResponseHeaders = { ...responseHeaders };
+        processedResponseHeaders = {
+          ...responseHeaders,
+          ...(h3altSvcPort != null ? { 'Alt-Svc': `h3=":${h3altSvcPort}"; ma=${altSvcIfH3Duration ?? 3600}` } : {}),
+        };
         status = processedResponseHeaders[':status'];
         delete processedResponseHeaders[':status'];
         
@@ -186,7 +192,7 @@ export class Server {
     }));
   }
   
-  async #handleHTTP1LikeConnect({ listenerID, mode, req, socket, head }) {
+  async #handleHTTP1LikeConnect({ listenerID, mode, req, socket, head, h3altSvcPort, altSvcIfH3Duration }) {
     let processedHeaders = {
       ':method': req.method,
       ':authority': req.headers.host,
@@ -225,7 +231,10 @@ export class Server {
       respondFunc: (data, responseHeaders) => {
         let status, processedResponseHeaders;
         
-        processedResponseHeaders = { ...responseHeaders };
+        processedResponseHeaders = {
+          ...responseHeaders,
+          ...(h3altSvcPort != null ? { 'Alt-Svc': `h3=":${h3altSvcPort}"; ma=${altSvcIfH3Duration ?? 3600}` } : {}),
+        };
         status = processedResponseHeaders[':status'];
         delete processedResponseHeaders[':status'];
         
@@ -249,7 +258,7 @@ export class Server {
     }));
   }
   
-  async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders }) {
+  async #handleHTTP2Request({ listenerID, secure, stream, headers, flags, rawHeaders, h3altSvcPort, altSvcIfH3Duration }) {
     let processedHeaders = { ...headers };
     
     delete processedHeaders[':path'];
@@ -276,10 +285,15 @@ export class Server {
         socket: stream.session.socket,
       },
       respondFunc: (data, responseHeaders) => {
+        const processedResponseHeaders = {
+          ...responseHeaders,
+          ...(h3altSvcPort != null ? { 'Alt-Svc': `h3=":${h3altSvcPort}"; ma=${altSvcIfH3Duration ?? 3600}` } : {}),
+        };
+        
         if (data == null) {
-          stream.respond(responseHeaders, { endStream: true });
+          stream.respond(processedResponseHeaders, { endStream: true });
         } else {
-          stream.respond(responseHeaders, { endStream: false });
+          stream.respond(processedResponseHeaders, { endStream: false });
           
           if (!stream.writable) {
             if (!(data instanceof Readable) && data.length == 0) {
@@ -304,7 +318,7 @@ export class Server {
     instance,
     mode,
   }) {
-    const { listenerID, server } = instance;
+    const { listenerID, server, h3altSvcPort, altSvcIfH3Duration } = instance;
     const http1UpgradeAndConnectSockets = instance.http1UpgradeAndConnectSockets = new Set();
     
     server.on('request', async (req, res) => {
@@ -313,6 +327,8 @@ export class Server {
         mode,
         req,
         res,
+        h3altSvcPort,
+        altSvcIfH3Duration,
       });
     });
     
@@ -330,6 +346,8 @@ export class Server {
           req,
           socket,
           head,
+          h3altSvcPort,
+          altSvcIfH3Duration,
         });
       }
     });
@@ -350,6 +368,8 @@ export class Server {
           req,
           socket,
           head,
+          h3altSvcPort,
+          altSvcIfH3Duration,
         });
       }
     });
@@ -487,6 +507,14 @@ export class Server {
         mode: 'http' | 'https' | 'http2' | 'http3',
         ip: string<ip address>,
         port: integer<port, 0 - 65535>,
+        altSvcIfH3Behavior: string? (default 'samePortOrAlwaysIfOne'),
+          Adds 'Alt-Svc: h3=":<port number>"; ma=3600' to non-http3 requests if there is a http3 server present
+          Values:
+            'none'
+            'samePortOnly' (only point to http3 alt svc if running on same port as http3 server)
+            'samePortOrAlwaysIfOne' (if more than one http3 server, only point to http3 alt svc if running on same port as http3 server; always point to http3 alt svc if there is only one http3 server)
+        altSvcIfH3Duration: integer (default 3600),
+          The length of time to advertise the alt svc for in the alt svc header described above.
         options: Object, (options passed to server constructor)
           additional tls options:
             sessionResumptionWithID: boolean
@@ -512,14 +540,75 @@ export class Server {
       newInstance.tlsServer = null; // only used for https/http2 sharing
       newInstance.tlsServerConnections = null; // only used for https/http2 sharing
       newInstance.otherServer = null; // only used for https/http2 sharing
+      newInstance.h3altSvcPort = null; // only used by non-http3 to point to http3 alt svc instance
       
       return newInstance;
     });
     
+    const http3Instances = [];
+    const nonHttp3Instances = [];
+    
+    for (const instance of this.#instances) {
+      if (instance.mode == 'http3') {
+        http3Instances.push(instance);
+      } else {
+        nonHttp3Instances.push(instance);
+      }
+    }
+    
+    if (http3Instances.length == 1) {
+      for (const nonHttp3Instance of nonHttp3Instances) {
+        switch (nonHttp3Instance.altSvcIfH3Behavior) {
+          case undefined:
+          case null:
+          case 'samePortOrAlwaysIfOne':
+            // All other servers point to this http3 server for alt svc
+            nonHttp3Instance.h3altSvcPort = http3Instances[0].port;
+            break;
+          
+          case 'samePortOnly':
+            // Servers only point to this http3 server if they share the same port
+            if (nonHttp3Instance.port == http3Instances[0].port) {
+              nonHttp3Instance.h3altSvcPort = nonHttp3Instance.port;
+            }
+            break;
+          
+          case 'none':
+            break;
+          
+          default:
+            throw new Error(`unrecognized value for altSvcIfH3Behavior: ${nonHttp3Instance.altSvcIfH3Behavior}`);
+        }
+      }
+    } else if (http3Instances.length > 1) {
+      const http3InstancesPortMap =
+        new Map(http3Instances.map(http3Instance => [http3Instance.port, http3Instance]));
+      
+      for (const nonHttp3Instance of nonHttp3Instances) {
+        switch (nonHttp3Instance.altSvcIfH3Behavior) {
+          case undefined:
+          case null:
+          case 'samePortOrAlwaysIfOne':
+          case 'samePortOnly':
+            // Servers only point to this http3 server if they share the same port
+            if (http3InstancesPortMap.has(nonHttp3Instance.port)) {
+              nonHttp3Instance.h3altSvcPort = nonHttp3Instance.port;
+            }
+            break;
+          
+          case 'none':
+            break;
+          
+          default:
+            throw new Error(`unrecognized value for altSvcIfH3Behavior: ${nonHttp3Instance.altSvcIfH3Behavior}`);
+        }
+      }
+    }
+    
     let tlsServers = new Map();
     
     for (let instance of this.#instances) {
-      const { listenerID, mode, ip, port, options } = instance;
+      const { listenerID, mode, ip, port, options, h3altSvcPort, altSvcIfH3Duration } = instance;
       
       switch (mode) {
         case 'http': {
@@ -587,6 +676,8 @@ export class Server {
                 headers,
                 flags,
                 rawHeaders,
+                h3altSvcPort,
+                altSvcIfH3Duration,
               });
             }
           );
