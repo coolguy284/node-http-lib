@@ -3,6 +3,7 @@ post-quantum tls support
 native http3 support
 
 low prio:
+add default off option to servefolder to serve automatically generated index files when path ends in "/"
 create adapter that provides an interface identical to node:http / node:https but uses the underlying server
   (also include support for escape hatches in parameters, hidden methods, etc. to access the true server functions)
 throttle support
