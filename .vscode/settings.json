@@ -1,5 +1,6 @@
 {
   "files.exclude": {
+    "node_modules": true,
     "test/server_basic/*.csr": true,
     "test/server_basic/*.pem": true,
   },
