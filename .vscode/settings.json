@@ -1,7 +1,5 @@
 {
   "files.exclude": {
-    "node_modules": true,
-    "package-lock.json": true,
     "test/server_basic/*.csr": true,
     "test/server_basic/*.pem": true,
   },

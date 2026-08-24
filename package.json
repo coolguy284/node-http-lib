@@ -1,7 +1,7 @@
 {
   "name": "http-lib",
   "type": "module",
-  "version": "0.12.0",
+  "version": "0.12.0.1",
   "description": "A library to present a simple unified interface for running nodejs HTTP/HTTPS 1, 2, and 3 servers, with support for websockets.",
   "author": "coolguy284 <coolguy284v64@gmail.com> (https://github.com/coolguy284)",
   "license": "(MIT + Unlicense)",
@@ -13,18 +13,21 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "bufferutil": "^4.0.9",
-    "mime": "^4.0.7",
-    "quico": "^0.2.0",
-    "ws": "^8.18.3"
+    "bufferutil": "^4.1.0",
+    "mime": "^4.1.0",
+    "quico": "^0.4.0",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.31.0",
-    "@stylistic/eslint-plugin": "^5.2.2",
-    "@types/node": "^24.1.0",
-    "eslint": "^9.31.0",
-    "globals": "^16.3.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^26.2.0",
+    "eslint": "^10.3.0",
+    "globals": "^17.11.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0"
+  },
+  "allowScripts": {
+    "bufferutil@4.1.0": true
   }
 }
