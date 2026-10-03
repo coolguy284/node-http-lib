@@ -3,6 +3,7 @@ post-quantum tls support
 native http3 support
 
 low prio:
+refresh secure context option (to reload tls key and cert files) and auto refresh secure context option (to do it automatically when the file changes, perhaps on a customizable time delay to allow for file writing)
 add default off option to servefolder to serve automatically generated index files when path ends in "/"
 create adapter that provides an interface identical to node:http / node:https but uses the underlying server
   (also include support for escape hatches in parameters, hidden methods, etc. to access the true server functions)
